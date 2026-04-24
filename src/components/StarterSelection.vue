@@ -1,7 +1,17 @@
 <script setup>
+import { ref } from 'vue'
+
 const props = defineProps({
   entrenador: Object,
 })
+
+const emit = defineEmits(['compañero-elegido'])
+
+const pokemonElegido = ref(null)
+
+function comenzarAventura() {
+  emit('compañero-elegido', pokemonElegido.value)
+}
 
 const iniciales = [
   {
@@ -105,10 +115,26 @@ const iniciales = [
         <button
           class="btn-elegir"
           :style="{ backgroundColor: pokemon.colorElemento }"
+          @click="pokemonElegido = pokemon"
         >
-          Elegir a {{ pokemon.nombre }}
+          {{ pokemonElegido && pokemonElegido.id === pokemon.id ? '✓ Elegido' : 'Elegir a ' + pokemon.nombre }}
         </button>
       </div>
+    </div>
+
+    <div class="aventura-wrap">
+      <button
+        class="btn-aventura"
+        :disabled="pokemonElegido === null"
+        :class="{ activo: pokemonElegido !== null }"
+        :style="pokemonElegido ? { backgroundColor: pokemonElegido.colorElemento } : {}"
+        @click="comenzarAventura"
+      >
+        ¡Comenzar aventura!
+      </button>
+      <p v-if="pokemonElegido === null" class="aventura-hint">
+        Elige un compañero para continuar
+      </p>
     </div>
 
   </div>
@@ -263,5 +289,37 @@ const iniciales = [
 .btn-elegir:hover {
   filter: brightness(0.9);
   transform: scale(1.02);
+}
+
+.aventura-wrap {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.btn-aventura {
+  padding: 14px 48px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: not-allowed;
+  background-color: #ccc;
+  transition: background-color 0.3s, transform 0.1s, filter 0.2s;
+}
+
+.btn-aventura.activo {
+  cursor: pointer;
+}
+
+.btn-aventura.activo:hover {
+  filter: brightness(0.9);
+  transform: scale(1.02);
+}
+
+.aventura-hint {
+  margin-top: 10px;
+  color: #aaa;
+  font-size: 0.88rem;
 }
 </style>

@@ -219,7 +219,7 @@ function crearEntrenador() {
       @click="crearEntrenador"
       :style="claseElegida ? { backgroundColor: claseElegida.color } : {}"
     >
-      ¡Comenzar aventura!
+      Elegir compañero
     </button>
   </div>
 </template>
