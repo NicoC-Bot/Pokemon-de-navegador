@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue'
-import { calcularGananciaEntrenamiento } from '../utils/calcularStats.js'
+import { ref, computed } from 'vue'
+import { calcularGananciaEntrenamiento, xpParaNivel } from '../utils/calcularStats.js'
 
 const props = defineProps({
   pokemon:    Object,
@@ -11,12 +11,17 @@ const emit = defineEmits(['actualizar', 'volver'])
 
 const stats      = ref({ ...props.pokemon.stats })
 const nivel      = ref(props.pokemon.nivel)
+const xp         = ref(props.pokemon.xp ?? 0)
 const pe         = ref(props.pokemon.pe)
 const haycambios = ref(false)
 const confirmado = ref(false)
+const subiNivel  = ref(false)
 const contadores = ref(
   Object.fromEntries(Object.keys(props.pokemon.stats).map(k => [k, 0]))
 )
+
+const xpNecesaria   = computed(() => xpParaNivel(nivel.value))
+const xpPorcentaje  = computed(() => Math.min(100, (xp.value / xpNecesaria.value) * 100))
 
 function ganancia() {
   return calcularGananciaEntrenamiento(nivel.value)
@@ -47,10 +52,26 @@ function disminuir(nombreStat) {
 }
 
 function confirmar() {
+  const xpGanada = Object.values(contadores.value).reduce((s, c) => s + c, 0) * ganancia()
+  let xpActual   = xp.value + xpGanada
+  subiNivel.value = false
+
+  while (xpActual >= xpParaNivel(nivel.value)) {
+    xpActual -= xpParaNivel(nivel.value)
+    nivel.value++
+    for (const k in stats.value) {
+      stats.value[k] = Math.min(150, stats.value[k] + 2)
+    }
+    subiNivel.value = true
+  }
+
+  xp.value = xpActual
+
   emit('actualizar', {
     stats: { ...stats.value },
     pe:    pe.value,
     nivel: nivel.value,
+    xp:    xp.value,
   })
   confirmado.value = true
   haycambios.value = false
@@ -90,6 +111,15 @@ function volver() {
         <div class="meta-item">
           <span class="meta-label">Ganancia actual</span>
           <span class="meta-valor">+{{ ganancia() }} por entrenamiento</span>
+        </div>
+      </div>
+      <div class="xp-barra-wrap">
+        <div class="xp-labels">
+          <span>EXP</span>
+          <span>{{ xp }} / {{ xpNecesaria }}</span>
+        </div>
+        <div class="xp-barra-fondo">
+          <div class="xp-barra-relleno" :style="{ width: xpPorcentaje + '%' }"></div>
         </div>
       </div>
     </div>
@@ -155,8 +185,9 @@ function volver() {
     </p>
 
     <Transition name="fade">
-      <div v-if="confirmado" class="aviso-completado">
-        ✓ ¡Entrenamiento completado!
+      <div v-if="confirmado" class="aviso-completado" :class="{ 'nivel-up': subiNivel }">
+        <template v-if="subiNivel">⬆ ¡Subiste al nivel {{ nivel }}! Todos los stats +2</template>
+        <template v-else>✓ ¡Entrenamiento completado!</template>
       </div>
     </Transition>
 
@@ -186,14 +217,41 @@ function volver() {
 .pokemon-header {
   border: 2px solid #ccc;
   border-radius: 14px;
-  padding: 20px 24px;
+  padding: 20px 24px 16px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
-  flex-wrap: wrap;
   gap: 16px;
   color: white;
+}
+
+.xp-barra-wrap {
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.xp-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+
+.xp-barra-fondo {
+  height: 6px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.xp-barra-relleno {
+  height: 100%;
+  background: rgba(255,255,255,0.85);
+  border-radius: 4px;
+  transition: width 0.4s ease;
 }
 
 .pokemon-info {
@@ -394,6 +452,12 @@ function volver() {
   font-weight: bold;
   font-size: 0.95rem;
   text-align: center;
+}
+
+.aviso-completado.nivel-up {
+  background: #fff8e0;
+  border-color: #f4c430;
+  color: #a07800;
 }
 
 .fade-enter-active,

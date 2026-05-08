@@ -6,13 +6,28 @@ import ConfirmStarter from './components/ConfirmStarter.vue'
 import MainHub from './components/MainHub.vue'
 import { prepararPokemon } from './utils/calcularStats.js'
 
-const entrenador      = ref(null)
-const compañero       = ref(null)
-const juegoIniciado   = ref(false)
-const equipo          = ref([])
-const ultimoDescanso  = ref(null) // timestamp de cuando terminó el último descanso
-const descansandoHasta = ref(null)
-const peDescanso      = ref(0)
+const entrenador       = ref(null)
+const compañero        = ref(null)
+const juegoIniciado    = ref(false)
+const equipo           = ref([])
+const capturados           = ref([])
+const ultimoDescanso       = ref(null)
+const descansandoHasta     = ref(null)
+const peDescanso           = ref(0)
+const capturaCooldownHasta = ref(null)
+const capturasDisponibles  = ref(3)
+const inventario           = ref({ baya: 0, hierba: 0, cristal: 0, agua: 0, piedra: 0 })
+
+const INVENTARIO_MAX = 2000
+
+function totalInventario() {
+  return Object.values(inventario.value).reduce((s, n) => s + n, 0)
+}
+
+function agregarMaterial(material) {
+  if (totalInventario() >= INVENTARIO_MAX) return
+  inventario.value = { ...inventario.value, [material.id]: (inventario.value[material.id] ?? 0) + 1 }
+}
 
 function recibirEntrenador(datos) {
   entrenador.value = datos
@@ -24,12 +39,33 @@ function recibirCompañero(pokemon) {
 
 function confirmarInicio() {
   const pokemonListo = prepararPokemon(compañero.value, entrenador.value.clase)
-  equipo.value = [pokemonListo]
+  equipo.value      = [pokemonListo]
+  capturados.value  = [pokemonListo]
   juegoIniciado.value = true
 }
 
 function actualizarPokemon({ index, datos }) {
-  equipo.value[index] = { ...equipo.value[index], ...datos }
+  const actualizado = { ...equipo.value[index], ...datos }
+  equipo.value[index] = actualizado
+  const i = capturados.value.findIndex(p => p.uid === actualizado.uid)
+  if (i !== -1) capturados.value[i] = actualizado
+}
+
+function capturarPokemon(pokemon) {
+  const pokemonListo = prepararPokemon(pokemon, entrenador.value.clase)
+  capturados.value = [...capturados.value, pokemonListo]
+  if (equipo.value.length < 6) {
+    equipo.value = [...equipo.value, pokemonListo]
+  }
+}
+
+function actualizarEquipo(nuevoEquipo) {
+  equipo.value = nuevoEquipo
+}
+
+function actualizarCapturas({ cooldownHasta, capturasDisponibles: nuevas }) {
+  capturaCooldownHasta.value = cooldownHasta
+  capturasDisponibles.value  = nuevas
 }
 
 function iniciarDescanso({ minutos, pe }) {
@@ -69,11 +105,19 @@ function completarDescanso() {
     v-else
     :entrenador="entrenador"
     :equipo="equipo"
+    :capturados="capturados"
+    :inventario="inventario"
     :ultimo-descanso="ultimoDescanso"
     :descansando-hasta="descansandoHasta"
     :pe-descanso="peDescanso"
+    :captura-cooldown-hasta="capturaCooldownHasta"
+    :capturas-disponibles="capturasDisponibles"
     @actualizar-pokemon="actualizarPokemon"
+    @capturar-pokemon="capturarPokemon"
+    @actualizar-equipo="actualizarEquipo"
+    @actualizar-capturas="actualizarCapturas"
     @iniciar-descanso="iniciarDescanso"
     @completar-descanso="completarDescanso"
+    @agregar-material="agregarMaterial"
   />
 </template>

@@ -15,26 +15,32 @@ const opciones = [
   { id: 'profundo', label: '🏕️ Descanso profundo', minutos: 120, pe: 40 },
 ]
 
-const tiempoRestante = ref(
+const COOLDOWN = 6 * 60 * 60 * 1000
+
+const tiempoRestante    = ref(
   props.descansandoHasta ? Math.max(0, props.descansandoHasta - Date.now()) : 0
 )
+const tiempoPostDescanso = ref(
+  props.ultimoDescanso ? Math.max(0, (props.ultimoDescanso + COOLDOWN) - Date.now()) : 0
+)
 
-let intervalo = null
+let intervalo         = null
+let intervaloPostDesc = null
 
 if (props.descansandoHasta && props.descansandoHasta > Date.now()) {
   iniciarContador()
 }
 
-const COOLDOWN = 6 * 60 * 60 * 1000
+if (props.ultimoDescanso && (props.ultimoDescanso + COOLDOWN) > Date.now()) {
+  iniciarContadorPostDescanso()
+}
 
 function enCooldown() {
-  if (props.ultimoDescanso === null) return false
-  return (props.ultimoDescanso + COOLDOWN) > Date.now()
+  return tiempoPostDescanso.value > 0
 }
 
 function tiempoCooldown() {
-  if (!props.ultimoDescanso) return 0
-  return Math.max(0, (props.ultimoDescanso + COOLDOWN) - Date.now())
+  return tiempoPostDescanso.value
 }
 
 function estaDescansando() {
@@ -44,18 +50,28 @@ function estaDescansando() {
 function iniciarContador() {
   if (intervalo) clearInterval(intervalo)
   intervalo = setInterval(() => {
-    const restante = props.descansandoHasta - Date.now()
-    if (restante <= 0) {
+    tiempoRestante.value = Math.max(0, tiempoRestante.value - 1000)
+    if (tiempoRestante.value <= 0) {
       clearInterval(intervalo)
-      tiempoRestante.value = 0
+      tiempoPostDescanso.value = COOLDOWN
+      iniciarContadorPostDescanso()
       emit('completar-descanso')
-    } else {
-      tiempoRestante.value = restante
+    }
+  }, 1000)
+}
+
+function iniciarContadorPostDescanso() {
+  if (intervaloPostDesc) clearInterval(intervaloPostDesc)
+  intervaloPostDesc = setInterval(() => {
+    tiempoPostDescanso.value = Math.max(0, tiempoPostDescanso.value - 1000)
+    if (tiempoPostDescanso.value <= 0) {
+      clearInterval(intervaloPostDesc)
     }
   }, 1000)
 }
 
 function elegirDescanso(opcion) {
+  tiempoRestante.value = opcion.minutos * 60 * 1000
   emit('iniciar-descanso', { minutos: opcion.minutos, pe: opcion.pe })
   setTimeout(() => iniciarContador(), 50)
 }
@@ -72,6 +88,7 @@ function formatearTiempo(ms) {
 
 onUnmounted(() => {
   if (intervalo) clearInterval(intervalo)
+  if (intervaloPostDesc) clearInterval(intervaloPostDesc)
 })
 </script>
 

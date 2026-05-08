@@ -1,22 +1,36 @@
 <script setup>
 import { ref } from 'vue'
-import TrainView from './TrainView.vue'
-import RestView  from './RestView.vue'
+import TrainView      from './TrainView.vue'
+import RestView       from './RestView.vue'
+import ExploreView    from './ExploreView.vue'
+import TeamView       from './TeamView.vue'
+import InventarioView   from './InventarioView.vue'
+import CompañerosView  from './CompañerosView.vue'
 
 const props = defineProps({
-  entrenador:       Object,
-  equipo:           Array,
-  ultimoDescanso:   String,
-  descansandoHasta: Number,
-  peDescanso:       Number,
+  entrenador:           Object,
+  equipo:               Array,
+  capturados:           Array,
+  inventario:           Object,
+  ultimoDescanso:       Number,
+  descansandoHasta:     Number,
+  peDescanso:           Number,
+  capturaCooldownHasta: Number,
+  capturasDisponibles:  Number,
 })
 
-const emit = defineEmits(['actualizar-pokemon', 'iniciar-descanso', 'completar-descanso'])
+const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material'])
 
-const vistaActual = ref('hub')
+const vistaActual    = ref('hub')
+const pokemonIndex   = ref(0)
 
 function actualizarPokemon(index, datos) {
   emit('actualizar-pokemon', { index, datos })
+}
+
+function seleccionarParaEntrenar(index) {
+  if (props.equipo[index] === undefined) return
+  pokemonIndex.value = index
 }
 </script>
 
@@ -42,7 +56,12 @@ function actualizarPokemon(index, datos) {
           <div
             v-for="(slot, index) in 6"
             class="slot"
-            :class="{ ocupado: equipo[index] !== undefined }"
+            :class="{
+              ocupado:      equipo[index] !== undefined,
+              seleccionado: vistaActual === 'entrenar' && index === pokemonIndex,
+              entrenable:   vistaActual === 'entrenar' && equipo[index] !== undefined,
+            }"
+            @click="vistaActual === 'entrenar' ? seleccionarParaEntrenar(index) : null"
           >
             <span v-if="equipo[index]" class="slot-nombre">{{ equipo[index].nombre }}</span>
             <span v-else class="slot-vacio">—</span>
@@ -90,29 +109,54 @@ function actualizarPokemon(index, datos) {
             <p>Recupera los PE de tu equipo. Un descanso por día.</p>
             <button @click="vistaActual = 'descanso'">Descansar</button>
           </div>
+
+          <div class="accion-card">
+            <span class="accion-icono">🎒</span>
+            <h2>Inventario</h2>
+            <p>Revisa los materiales que has recogido en tus exploraciones.</p>
+            <button @click="vistaActual = 'inventario'">Ver inventario</button>
+          </div>
+
+          <div class="accion-card">
+            <span class="accion-icono">🤝</span>
+            <h2>Compañeros</h2>
+            <p>Cuida y usa materiales con tus Pokémon.</p>
+            <button @click="vistaActual = 'compañeros'">Ver compañeros</button>
+          </div>
         </div>
       </div>
 
       <!-- Vista: Entrenar -->
       <div v-else-if="vistaActual === 'entrenar'">
         <TrainView
-          :pokemon="equipo[0]"
+          :key="pokemonIndex"
+          :pokemon="equipo[pokemonIndex]"
           :clase-stats="entrenador.clase.stats"
-          @actualizar="datos => actualizarPokemon(0, datos)"
+          @actualizar="datos => actualizarPokemon(pokemonIndex, datos)"
           @volver="vistaActual = 'hub'"
         />
       </div>
 
-      <!-- Vista: Explorar (próximamente) -->
-      <div v-else-if="vistaActual === 'explorar'" class="proximamente">
-        <button class="btn-volver" @click="vistaActual = 'hub'">← Volver</button>
-        <p>🔍 Explorar — próximamente</p>
+      <!-- Vista: Explorar -->
+      <div v-else-if="vistaActual === 'explorar'">
+        <ExploreView
+          :captura-cooldown-hasta="capturaCooldownHasta"
+          :capturas-disponibles="capturasDisponibles"
+          @volver="vistaActual = 'hub'"
+          @capturar="pokemon => emit('capturar-pokemon', pokemon)"
+          @actualizar-capturas="datos => emit('actualizar-capturas', datos)"
+          @agregar-material="material => emit('agregar-material', material)"
+        />
       </div>
 
-      <!-- Vista: Equipo (próximamente) -->
-      <div v-else-if="vistaActual === 'equipo'" class="proximamente">
-        <button class="btn-volver" @click="vistaActual = 'hub'">← Volver</button>
-        <p>📋 Equipo — próximamente</p>
+      <!-- Vista: Equipo -->
+      <div v-else-if="vistaActual === 'equipo'">
+        <TeamView
+          :equipo="equipo"
+          :capturados="capturados"
+          @actualizar-equipo="nuevoEquipo => emit('actualizar-equipo', nuevoEquipo)"
+          @volver="vistaActual = 'hub'"
+        />
       </div>
 
       <!-- Vista: Descanso -->
@@ -123,6 +167,24 @@ function actualizarPokemon(index, datos) {
           :pe-descanso="peDescanso"
           @iniciar-descanso="datos => emit('iniciar-descanso', datos)"
           @completar-descanso="emit('completar-descanso')"
+          @volver="vistaActual = 'hub'"
+        />
+      </div>
+
+      <!-- Vista: Inventario -->
+      <div v-else-if="vistaActual === 'inventario'">
+        <InventarioView
+          :inventario="inventario"
+          @volver="vistaActual = 'hub'"
+        />
+      </div>
+
+      <!-- Vista: Compañeros -->
+      <div v-else-if="vistaActual === 'compañeros'">
+        <CompañerosView
+          :equipo="equipo"
+          :capturados="capturados"
+          :inventario="inventario"
           @volver="vistaActual = 'hub'"
         />
       </div>
@@ -207,38 +269,54 @@ function actualizarPokemon(index, datos) {
   color: #222;
 }
 
+.slot.entrenable {
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.slot.entrenable:hover {
+  border-color: #555;
+  background: #ececec;
+}
+
+.slot.seleccionado {
+  border-color: #222;
+  background: #e8e8e8;
+  box-shadow: inset 0 0 0 1px #222;
+}
+
 .slot-nombre { font-weight: bold; }
 
 .contenido {
   flex: 1;
-  padding: 48px 40px;
+  padding: 28px 32px;
 }
 
-.bienvenida { margin-bottom: 48px; }
+.bienvenida { margin-bottom: 24px; }
 
 .bienvenida h1 {
-  font-size: 2rem;
-  margin-bottom: 6px;
+  font-size: 1.6rem;
+  margin-bottom: 4px;
 }
 
 .bienvenida p {
   color: #666;
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 .acciones {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 20px;
+  gap: 14px;
 }
 
 .accion-card {
   border: 2px solid #e0e0e0;
   border-radius: 14px;
-  padding: 28px 24px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -247,28 +325,28 @@ function actualizarPokemon(index, datos) {
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-.accion-icono { font-size: 2rem; }
+.accion-icono { font-size: 1.6rem; }
 
 .accion-card h2 {
-  font-size: 1.2rem;
+  font-size: 1rem;
   margin: 0;
 }
 
 .accion-card p {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   color: #666;
   margin: 0;
   flex: 1;
 }
 
 .accion-card button {
-  margin-top: 12px;
-  padding: 10px;
+  margin-top: 8px;
+  padding: 8px;
   background: #222;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.2s;
 }
