@@ -5,6 +5,7 @@ import StarterSelection from './components/StarterSelection.vue'
 import ConfirmStarter from './components/ConfirmStarter.vue'
 import MainHub from './components/MainHub.vue'
 import { prepararPokemon } from './utils/calcularStats.js'
+import { materiales } from './data/pokemonesExploracion.js'
 
 const entrenador       = ref(null)
 const compañero        = ref(null)
@@ -16,7 +17,7 @@ const descansandoHasta     = ref(null)
 const peDescanso           = ref(0)
 const capturaCooldownHasta = ref(null)
 const capturasDisponibles  = ref(3)
-const inventario           = ref({ baya: 0, hierba: 0, cristal: 0, agua: 0, piedra: 0 })
+const inventario           = ref(Object.fromEntries(materiales.map(m => [m.id, 0])))
 
 const INVENTARIO_MAX = 2000
 
@@ -73,6 +74,27 @@ function iniciarDescanso({ minutos, pe }) {
   peDescanso.value       = pe
 }
 
+function usarMaterial({ pokemonUid, materialId, cantidad = 1 }) {
+  const stockActual = inventario.value[materialId] ?? 0
+  if (stockActual < cantidad) return
+  inventario.value = { ...inventario.value, [materialId]: stockActual - cantidad }
+
+  const mat = materiales.find(m => m.id === materialId)
+  const actualizar = p => {
+    if (p.uid !== pokemonUid) return p
+    if (mat.tipo === 'curativo' || mat.tipo === 'curativo-elemental') {
+      return { ...p, hpActual: Math.min(p.stats.HP, (p.hpActual ?? p.stats.HP) + mat.hpRecuperado) }
+    }
+    if (mat.tipo === 'ascension' && (p.nivelAscension ?? 0) < 2) {
+      return { ...p, nivelAscension: (p.nivelAscension ?? 0) + 1 }
+    }
+    return p
+  }
+
+  equipo.value    = equipo.value.map(actualizar)
+  capturados.value = capturados.value.map(actualizar)
+}
+
 function completarDescanso() {
   equipo.value = equipo.value.map(p => ({
     ...p,
@@ -119,5 +141,6 @@ function completarDescanso() {
     @iniciar-descanso="iniciarDescanso"
     @completar-descanso="completarDescanso"
     @agregar-material="agregarMaterial"
+    @usar-material="usarMaterial"
   />
 </template>

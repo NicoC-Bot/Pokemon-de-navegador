@@ -74,7 +74,16 @@ function explorar() {
   const calificados  = pokemonesWild.filter(p => rng >= obtenerRareza(p.rareza).umbral)
 
   if (calificados.length === 0) {
-    const material = materiales[Math.floor(Math.random() * materiales.length)]
+    const rngPool = Math.random() * 100
+    let pool
+    if (rngPool < 25) {
+      pool = materiales.filter(m => m.tipo === 'curativo-elemental')
+    } else if (rngPool < 30) {
+      pool = materiales.filter(m => m.tipo === 'ascension')
+    } else {
+      pool = materiales.filter(m => m.tipo === 'curativo' || m.tipo === 'general')
+    }
+    const material = pool[Math.floor(Math.random() * pool.length)]
     resultado.value = { tipo: 'material', material }
     return
   }

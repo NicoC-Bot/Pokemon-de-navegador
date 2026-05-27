@@ -24,16 +24,14 @@ function prepararPokemon(pokemon, clase) {
   const statsFinal = calcularStatsFinal(pokemon.stats, clase.stats)
 
   return {
+    ...pokemon,
     uid:            Date.now() + '-' + Math.random(),
-    id:             pokemon.id,
-    nombre:         pokemon.nombre,
-    elemento:       pokemon.elemento,
-    colorElemento:  pokemon.colorElemento,
-    descripcion:    pokemon.descripcion,
     rareza:         pokemon.rareza ?? 'comun',
     nivel:          1,
     xp:             0,
     pe:             100,
+    hpActual:       statsFinal.HP,
+    nivelAscension: 0,
     stats:          statsFinal,
     statsBase:      { ...pokemon.stats },
   }

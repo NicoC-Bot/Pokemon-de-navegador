@@ -6,6 +6,7 @@ import ExploreView    from './ExploreView.vue'
 import TeamView       from './TeamView.vue'
 import InventarioView   from './InventarioView.vue'
 import CompañerosView  from './CompañerosView.vue'
+import CombateView     from './CombateView.vue'
 
 const props = defineProps({
   entrenador:           Object,
@@ -19,7 +20,7 @@ const props = defineProps({
   capturasDisponibles:  Number,
 })
 
-const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material'])
+const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material', 'usar-material'])
 
 const vistaActual    = ref('hub')
 const pokemonIndex   = ref(0)
@@ -123,6 +124,13 @@ function seleccionarParaEntrenar(index) {
             <p>Cuida y usa materiales con tus Pokémon.</p>
             <button @click="vistaActual = 'compañeros'">Ver compañeros</button>
           </div>
+
+          <div class="accion-card">
+            <span class="accion-icono">⚔️</span>
+            <h2>Combate</h2>
+            <p>Enfrenta a tus Pokémon en duelos uno a uno.</p>
+            <button @click="vistaActual = 'combate'">Ir a combate</button>
+          </div>
         </div>
       </div>
 
@@ -185,6 +193,17 @@ function seleccionarParaEntrenar(index) {
           :equipo="equipo"
           :capturados="capturados"
           :inventario="inventario"
+          @volver="vistaActual = 'hub'"
+          @usar-material="datos => emit('usar-material', datos)"
+        />
+      </div>
+
+      <!-- Vista: Combate -->
+      <div v-else-if="vistaActual === 'combate'">
+        <CombateView
+          :entrenador="entrenador"
+          :equipo="equipo"
+          :capturados="capturados"
           @volver="vistaActual = 'hub'"
         />
       </div>

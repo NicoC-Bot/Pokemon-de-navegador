@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { pokemonesWild } from '../data/pokemonesExploracion.js'
 
 const props = defineProps({
   entrenador: Object,
@@ -13,6 +14,10 @@ function comenzarAventura() {
   emit('compañero-elegido', pokemonElegido.value)
 }
 
+function habsDeId(id) {
+  return pokemonesWild.find(p => p.id === id)?.habilidades ?? []
+}
+
 const iniciales = [
   {
     id: 'embrix',
@@ -20,6 +25,8 @@ const iniciales = [
     elemento: '🔥 Fuego',
     colorElemento: '#e63946',
     descripcion: 'Ágil y agresivo. Golpea fuerte desde el primer turno.',
+    rareza: 'comun',
+    habilidades: habsDeId('embrix'),
     stats: {
       HP: 40,
       Ataque: 45,
@@ -35,6 +42,8 @@ const iniciales = [
     elemento: '💧 Agua',
     colorElemento: '#4895ef',
     descripcion: 'Resistente y constante. Difícil de derribar en combate.',
+    rareza: 'comun',
+    habilidades: habsDeId('aquell'),
     stats: {
       HP: 55,
       Ataque: 30,
@@ -50,6 +59,8 @@ const iniciales = [
     elemento: '🌿 Planta',
     colorElemento: '#2dc653',
     descripcion: 'Equilibrado y paciente. Ideal para aprender a combatir.',
+    rareza: 'comun',
+    habilidades: habsDeId('verdun'),
     stats: {
       HP: 50,
       Ataque: 35,
