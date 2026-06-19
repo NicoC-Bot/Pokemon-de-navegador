@@ -7,6 +7,8 @@ import TeamView       from './TeamView.vue'
 import InventarioView   from './InventarioView.vue'
 import CompañerosView  from './CompañerosView.vue'
 import CombateView     from './CombateView.vue'
+import PerfilView           from './PerfilView.vue'
+import GuardarPartidaView  from './GuardarPartidaView.vue'
 
 const props = defineProps({
   entrenador:           Object,
@@ -20,7 +22,7 @@ const props = defineProps({
   capturasDisponibles:  Number,
 })
 
-const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material', 'usar-material'])
+const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material', 'usar-material', 'actualizar-nombre', 'guardar-partida'])
 
 const vistaActual    = ref('hub')
 const pokemonIndex   = ref(0)
@@ -131,6 +133,20 @@ function seleccionarParaEntrenar(index) {
             <p>Enfrenta a tus Pokémon en duelos uno a uno.</p>
             <button @click="vistaActual = 'combate'">Ir a combate</button>
           </div>
+
+          <div class="accion-card">
+            <span class="accion-icono">👤</span>
+            <h2>Perfil</h2>
+            <p>Consulta tus datos, clase y bonos de entrenador.</p>
+            <button @click="vistaActual = 'perfil'">Ver perfil</button>
+          </div>
+
+          <div class="accion-card">
+            <span class="accion-icono">💾</span>
+            <h2>Guardar partida</h2>
+            <p>Guarda tu progreso actual para continuar más tarde.</p>
+            <button @click="vistaActual = 'guardar'">Guardar</button>
+          </div>
         </div>
       </div>
 
@@ -205,6 +221,25 @@ function seleccionarParaEntrenar(index) {
           :equipo="equipo"
           :capturados="capturados"
           @volver="vistaActual = 'hub'"
+        />
+      </div>
+
+      <!-- Vista: Perfil -->
+      <div v-else-if="vistaActual === 'perfil'">
+        <PerfilView
+          :entrenador="entrenador"
+          :capturados="capturados"
+          @volver="vistaActual = 'hub'"
+          @actualizar-nombre="nombre => emit('actualizar-nombre', nombre)"
+        />
+      </div>
+
+      <!-- Vista: Guardar partida -->
+      <div v-else-if="vistaActual === 'guardar'">
+        <GuardarPartidaView
+          :entrenador="entrenador"
+          @volver="vistaActual = 'hub'"
+          @guardar-partida="datos => emit('guardar-partida', datos)"
         />
       </div>
 

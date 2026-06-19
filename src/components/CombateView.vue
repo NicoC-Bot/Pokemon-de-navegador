@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue'
 import { pokemonesWild, rarezas } from '../data/pokemonesExploracion.js'
+import { proyectarCola, consumirTurno, gaugeAlEntrar } from '../utils/atb.js'
 
 const props = defineProps({
   entrenador: Object,
@@ -78,38 +79,38 @@ const turnoNum       = ref(0)
 const finalizado     = ref(false)
 const ganador        = ref(null)
 const logEl          = ref(null)
-const subMenu         = ref(null)   // null | 'habilidades' | 'relevo'
-const cooldownRelevo  = ref(0)
-const esperandoRelevo = ref(false)  // true cuando el Pokémon activo cayó y hay que elegir sustituto
+const subMenu           = ref(null)   // null | 'habilidades' | 'relevo'
+const cooldownRelevo    = ref(0)
+const esperandoRelevo   = ref(false)  // true cuando el Pokémon activo cayó y hay que elegir sustituto
+const esperandoEnemigoAct = ref(false) // true mientras el enemigo ejecuta su turno automático
+const gaugeA = ref(0)  // gauge ATB acumulado del Pokémon del jugador
+const gaugeB = ref(0)  // gauge ATB acumulado del Pokémon enemigo
 
-// Cola ATB: cada Pokémon acumula velocidad por tick; cuando llega a 100 actúa
+// Cola ATB: proyecta los próximos 10 turnos desde el estado actual de los gauges
 const barraAccion = computed(() => {
   if (!estadoA.value || !estadoB.value || finalizado.value) return []
-  const velA = Math.max(1, statEfectivo(estadoA.value, 'Velocidad'))
-  const velB = Math.max(1, statEfectivo(estadoB.value, 'Velocidad'))
-  const nA   = estadoA.value.pokemon.nombre
-  const nB   = estadoB.value.pokemon.nombre
-  const slots = []
-  let gA = 0, gB = 0
-  for (let tick = 0; slots.length < 10 && tick < 500; tick++) {
-    gA += velA; gB += velB
-    if (gA >= 100 && gB >= 100) {
-      if (velA >= velB) {
-        slots.push({ nombre: nA, equipo: 'jugador' })
-        slots.push({ nombre: nB, equipo: 'oponente' })
-      } else {
-        slots.push({ nombre: nB, equipo: 'oponente' })
-        slots.push({ nombre: nA, equipo: 'jugador' })
-      }
-      gA -= 100; gB -= 100
-    } else if (gA >= 100) {
-      slots.push({ nombre: nA, equipo: 'jugador' }); gA -= 100
-    } else if (gB >= 100) {
-      slots.push({ nombre: nB, equipo: 'oponente' }); gB -= 100
-    }
-  }
-  return slots.slice(0, 10)
+  return proyectarCola({
+    gaugeA: gaugeA.value,
+    velA:   Math.max(1, statEfectivo(estadoA.value, 'Velocidad')),
+    nombreA: estadoA.value.pokemon.nombre,
+    gaugeB: gaugeB.value,
+    velB:   Math.max(1, statEfectivo(estadoB.value, 'Velocidad')),
+    nombreB: estadoB.value.pokemon.nombre,
+  })
 })
+
+// Avanza los gauges hasta que el equipo indicado actúa y consume su turno
+function consumirAccion(equipo) {
+  const { gaugeA: nA, gaugeB: nB } = consumirTurno({
+    gaugeA: gaugeA.value,
+    velA:   Math.max(1, statEfectivo(estadoA.value, 'Velocidad')),
+    gaugeB: gaugeB.value,
+    velB:   Math.max(1, statEfectivo(estadoB.value, 'Velocidad')),
+    equipo,
+  })
+  gaugeA.value = nA
+  gaugeB.value = nB
+}
 
 const relevosDisponibles = computed(() =>
   estadosJ.value
@@ -262,10 +263,15 @@ function revisarDerrota() {
       return true
     }
   }
-  if (estadoB.value.hpActual === 0) {
+  if (estadoB.value && estadoB.value.hpActual === 0) {
     combatLog.value.push(`💀 ${estadoB.value.pokemon.nombre} se debilitó.`)
-    indexB.value++
-    if (indexB.value < estadosO.value.length) {
+    if (indexB.value + 1 < estadosO.value.length) {
+      indexB.value++
+      gaugeB.value = gaugeAlEntrar(
+        Math.max(1, statEfectivo(estadoB.value, 'Velocidad')),
+        Math.max(1, statEfectivo(estadoA.value, 'Velocidad')),
+        gaugeA.value,
+      )
       combatLog.value.push(`↩  ${estadoB.value.pokemon.nombre} entra en combate.`)
     } else {
       finalizado.value = true; ganador.value = 'jugador'
@@ -278,64 +284,104 @@ function revisarDerrota() {
 
 function elegirRelevoPorDerrota(nuevoIndex) {
   indexA.value = nuevoIndex
+  gaugeA.value = gaugeAlEntrar(
+    Math.max(1, statEfectivo(estadoA.value, 'Velocidad')),
+    Math.max(1, statEfectivo(estadoB.value, 'Velocidad')),
+    gaugeB.value,
+  )
   esperandoRelevo.value = false
   combatLog.value.push(`↩  ${estadoA.value.pokemon.nombre} entra en combate.`)
   scrollLog()
+  // Si al enemigo le toca actuar primero según la cola, lo disparamos automáticamente
+  if (!finalizado.value && barraAccion.value[0]?.equipo === 'oponente') {
+    dispararTurnoEnemigo()
+  }
+}
+
+function dispararTurnoEnemigo() {
+  esperandoEnemigoAct.value = true
+  setTimeout(() => {
+    if (finalizado.value || !estadoB.value || estadoB.value.hpActual === 0) {
+      esperandoEnemigoAct.value = false
+      return
+    }
+    consumirAccion('oponente')
+    const habIA = elegirIA(estadoB.value)
+    combatLog.value.push(...ejecutarAtaque(estadoB.value, estadoA.value, habIA, '🔴 '))
+    tick(estadoB.value)
+    revisarDerrota()
+    scrollLog()
+    // Si al enemigo le toca de nuevo, actúa en otro turno automático
+    if (!finalizado.value && !esperandoRelevo.value && barraAccion.value[0]?.equipo === 'oponente') {
+      dispararTurnoEnemigo()
+    } else {
+      esperandoEnemigoAct.value = false
+    }
+  }, 700)
+}
+
+function _verificarTurnoEnemigo() {
+  if (!estadoB.value || estadoB.value.hpActual > 0) {
+    // Enemigo vivo (o finalizado): comprobar si le toca actuar
+    if (estadoB.value && barraAccion.value[0]?.equipo === 'oponente') {
+      dispararTurnoEnemigo()
+    }
+  } else {
+    // Enemigo derrotado: procesar y comprobar si el nuevo rival actúa primero
+    tick(estadoB.value)
+    revisarDerrota()
+    scrollLog()
+    if (!finalizado.value && !esperandoRelevo.value && barraAccion.value[0]?.equipo === 'oponente') {
+      dispararTurnoEnemigo()
+    }
+  }
 }
 
 // Turno normal (jugador usa habilidad)
 function ejecutarTurno(habIdx) {
-  if (finalizado.value || esperandoRelevo.value) return
+  if (finalizado.value || esperandoRelevo.value || esperandoEnemigoAct.value) return
+  consumirAccion('jugador')
   turnoNum.value++
   combatLog.value.push(`— Turno ${turnoNum.value} —`)
 
-  // El jugador actúa primero siempre (la velocidad afecta la frecuencia de turnos en el ATB, no quién va antes)
   combatLog.value.push(...ejecutarAtaque(estadoA.value, estadoB.value, habIdx, '🟢 '))
-
-  // El enemigo actúa después, solo si sigue en pie
-  if (estadoB.value.hpActual > 0) {
-    const habIA = elegirIA(estadoB.value)
-    combatLog.value.push(...ejecutarAtaque(estadoB.value, estadoA.value, habIA, '🔴 '))
-  }
-
-  tick(estadoA.value); tick(estadoB.value)
+  tick(estadoA.value)
   if (cooldownRelevo.value > 0) cooldownRelevo.value--
-  revisarDerrota()
   subMenu.value = null
   scrollLog()
+  _verificarTurnoEnemigo()
 }
 
-// Defender: el jugador toma postura defensiva; el oponente ataca
+// Defender: el jugador toma postura defensiva; el oponente actúa solo si le toca
 function ejecutarDefender() {
-  if (finalizado.value || esperandoRelevo.value) return
+  if (finalizado.value || esperandoRelevo.value || esperandoEnemigoAct.value) return
+  consumirAccion('jugador')
   turnoNum.value++
   combatLog.value.push(`— Turno ${turnoNum.value} —`)
   estadoA.value.defendiendo = true
   combatLog.value.push(`🛡️ ${estadoA.value.pokemon.nombre} adopta postura defensiva.`)
-  if (estadoB.value.hpActual > 0) {
-    const habIA = elegirIA(estadoB.value)
-    combatLog.value.push(...ejecutarAtaque(estadoB.value, estadoA.value, habIA, '🔴 '))
-  }
-  tick(estadoA.value); tick(estadoB.value)
+  tick(estadoA.value)
   if (cooldownRelevo.value > 0) cooldownRelevo.value--
-  revisarDerrota()
   subMenu.value = null
   scrollLog()
+  _verificarTurnoEnemigo()
 }
 
-// Relevo: el jugador cambia Pokémon; el oponente aún ataca ese turno
+// Relevo: el jugador cambia Pokémon; el oponente NO ataca durante el relevo
 function ejecutarRelevo(nuevoIndex) {
-  if (cooldownRelevo.value > 0 || finalizado.value || esperandoRelevo.value) return
+  if (cooldownRelevo.value > 0 || finalizado.value || esperandoRelevo.value || esperandoEnemigoAct.value) return
   turnoNum.value++
   combatLog.value.push(`— Turno ${turnoNum.value} —`)
   const anterior = estadoA.value.pokemon.nombre
   indexA.value = nuevoIndex
+  gaugeA.value = gaugeAlEntrar(
+    Math.max(1, statEfectivo(estadoA.value, 'Velocidad')),
+    Math.max(1, statEfectivo(estadoB.value, 'Velocidad')),
+    gaugeB.value,
+  )
   cooldownRelevo.value = 2
   combatLog.value.push(`🔄 Relevo: ${anterior} → ${estadoA.value.pokemon.nombre}.`)
-  const habIA = elegirIA(estadoB.value)
-  combatLog.value.push(...ejecutarAtaque(estadoB.value, estadoA.value, habIA, '🔴 '))
   tick(estadoA.value); tick(estadoB.value)
-  revisarDerrota()
   subMenu.value = null
   scrollLog()
 }
@@ -347,9 +393,16 @@ function iniciarCombate(teamsJ, teamsO) {
   estadosO.value = to.map(crearEstado)
   indexA.value = 0; indexB.value = 0
   turnoNum.value = 0; finalizado.value = false; ganador.value = null
-  cooldownRelevo.value = 0; subMenu.value = null; esperandoRelevo.value = false
+  cooldownRelevo.value = 0; subMenu.value = null; esperandoRelevo.value = false; esperandoEnemigoAct.value = false
+  gaugeA.value = 0; gaugeB.value = 0
   combatLog.value = [`⚔️  ${estadoA.value.pokemon.nombre} vs ${estadoB.value.pokemon.nombre} — ¡Comienza el combate!`]
   modo.value = 'combate'
+  // Si el enemigo es más rápido y le toca primero, actúa automáticamente
+  nextTick(() => {
+    if (barraAccion.value[0]?.equipo === 'oponente') {
+      dispararTurnoEnemigo()
+    }
+  })
 }
 
 function volver() {
@@ -504,13 +557,15 @@ function volver() {
 
         <!-- Barra de acción (orden de turnos ATB) -->
         <aside class="barra-accion">
-          <div class="barra-titulo">Orden</div>
+          <div class="barra-titulo">Orden de turnos</div>
           <div
             v-for="(slot, i) in barraAccion"
             :key="i"
             class="barra-slot"
-            :class="[slot.equipo, { 'barra-siguiente': i === 0 }]"
+            :class="[slot.equipo, { 'barra-actual': i === 0 }]"
+            :style="{ opacity: i === 0 ? 1 : Math.max(0.25, 1 - i * 0.09) }"
           >
+            <span class="barra-num">{{ i === 0 ? '▶' : i + 1 }}</span>
             <span class="barra-dot" :class="slot.equipo"></span>
             <span class="barra-nombre">{{ slot.nombre }}</span>
           </div>
@@ -600,6 +655,9 @@ function volver() {
                 </div>
               </div>
             </div>
+
+            <!-- Turno del rival -->
+            <div v-else-if="esperandoEnemigoAct" class="turno-enemigo">🔴 El rival está actuando...</div>
 
             <!-- Menú principal: 4 opciones -->
             <div v-else-if="subMenu === null" class="acciones-grid">
@@ -750,7 +808,7 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 
 /* ── Barra de acción (ATB) ── */
 .barra-accion {
-  width: 130px; flex-shrink: 0;
+  width: 140px; flex-shrink: 0;
   background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 10px;
   padding: 10px 8px;
 }
@@ -760,18 +818,20 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 }
 .barra-slot {
   display: flex; align-items: center; gap: 6px;
-  padding: 5px 7px; border-radius: 6px; font-size: 0.73rem;
-  margin-bottom: 3px; transition: background 0.2s;
+  padding: 4px 7px; border-radius: 6px; font-size: 0.72rem; color: #555;
+  margin-bottom: 2px; transition: opacity 0.3s;
 }
-.barra-slot.jugador  { background: rgba(76,175,80,0.12); }
-.barra-slot.oponente { background: rgba(244,67,54,0.10); }
-.barra-siguiente { font-weight: bold; }
-.barra-siguiente.jugador  { outline: 1px solid #4caf50; }
-.barra-siguiente.oponente { outline: 1px solid #f44336; }
+.barra-slot.jugador  { background: rgba(76,175,80,0.10); }
+.barra-slot.oponente { background: rgba(244,67,54,0.08); }
+.barra-actual { padding: 7px 9px !important; font-size: 0.82rem !important; font-weight: bold; }
+.barra-actual.jugador  { background: rgba(76,175,80,0.2) !important; outline: 2px solid #4caf50; color: #2e7d32; }
+.barra-actual.oponente { background: rgba(244,67,54,0.18) !important; outline: 2px solid #f44336; color: #b71c1c; }
+.barra-num { font-size: 0.6rem; color: #bbb; width: 14px; text-align: center; flex-shrink: 0; font-weight: bold; }
+.barra-actual .barra-num { font-size: 0.68rem; color: inherit; }
 .barra-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .barra-dot.jugador  { background: #4caf50; }
 .barra-dot.oponente { background: #f44336; }
-.barra-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barra-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 
 /* ── Main combate ── */
 .combate-main { flex: 1; min-width: 0; }
@@ -807,6 +867,8 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 }
 .combat-log p { margin: 0; }
 .log-separador { color: #555; border-top: 1px solid #2a2a2a; padding-top: 5px; margin-top: 3px; }
+
+.turno-enemigo { text-align: center; padding: 14px; color: #e63946; font-weight: bold; font-size: 0.95rem; }
 
 /* ── Acciones: menú principal (2×2) ── */
 .acciones-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }

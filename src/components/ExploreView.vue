@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { rarezas, materiales, pokemonesWild } from '../data/pokemonesExploracion.js'
 
 const props = defineProps({
@@ -22,9 +22,17 @@ const explorarKey    = ref(0)
 
 let intervalo = null
 
-if (props.capturaCooldownHasta && props.capturaCooldownHasta > Date.now()) {
-  iniciarContador()
-}
+onMounted(() => {
+  if (!props.capturaCooldownHasta) return
+  if (props.capturaCooldownHasta > Date.now()) {
+    iniciarContador()
+  } else {
+    // El timer ya venció mientras el componente no estaba activo — resetear de inmediato
+    emit('actualizar-capturas', { cooldownHasta: null, capturasDisponibles: MAX_CAPTURAS })
+  }
+})
+
+onUnmounted(() => { if (intervalo) clearInterval(intervalo) })
 
 function obtenerRareza(id) {
   return rarezas.find(r => r.id === id)
