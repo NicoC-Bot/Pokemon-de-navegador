@@ -153,7 +153,7 @@ h2 {
 .mat-cantidad {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #222;
+  color: #fff;
   min-width: 32px;
   text-align: right;
 }

@@ -2,11 +2,13 @@
 import { ref, computed, nextTick } from 'vue'
 import { pokemonesWild, rarezas } from '../data/pokemonesExploracion.js'
 import { proyectarCola, consumirTurno, gaugeAlEntrar } from '../utils/atb.js'
+import { registrarBatalla } from '../api/batallas.js'
 
 const props = defineProps({
   entrenador: Object,
   equipo:     Array,
   capturados: Array,
+  partidaId:  Number,
 })
 const emit = defineEmits(['volver'])
 
@@ -117,6 +119,35 @@ const relevosDisponibles = computed(() =>
     .map((est, i) => ({ est, i }))
     .filter(({ est, i }) => i !== indexA.value && est.hpActual > 0)
 )
+
+// ── Registro de batalla ───────────────────────────────────────────────
+const participantesBatalla = ref([])
+const turnosBatalla        = ref([])
+
+function _agregarParticipante(estado, equipo) {
+  const nombre = estado.pokemon.nombre
+  if (participantesBatalla.value.some(p => p.pokemon_nombre === nombre && p.equipo === equipo)) return
+  participantesBatalla.value.push({
+    pokemon_nombre: nombre,
+    pokemon_uid:    estado.pokemon.uid ?? null,
+    equipo,
+  })
+}
+
+async function _enviarBatalla(estado, resultado) {
+  try {
+    await registrarBatalla({
+      partida_id:     props.partidaId ?? null,
+      estado,
+      resultado,
+      turnos_totales: turnoNum.value,
+      participantes:  participantesBatalla.value,
+      turnos:         turnosBatalla.value,
+    })
+  } catch (e) {
+    console.error('No se pudo registrar la batalla:', e)
+  }
+}
 
 // ── Helpers de combate ────────────────────────────────────────────────
 function crearEstado(pokemon) {
@@ -260,6 +291,7 @@ function revisarDerrota() {
     } else {
       finalizado.value = true; ganador.value = 'oponente'
       combatLog.value.push('¡El equipo rival ganó el combate!')
+      _enviarBatalla('terminado', 'derrota')
       return true
     }
   }
@@ -272,10 +304,12 @@ function revisarDerrota() {
         Math.max(1, statEfectivo(estadoA.value, 'Velocidad')),
         gaugeA.value,
       )
+      _agregarParticipante(estadoB.value, 'oponente')
       combatLog.value.push(`↩  ${estadoB.value.pokemon.nombre} entra en combate.`)
     } else {
       finalizado.value = true; ganador.value = 'jugador'
       combatLog.value.push('¡Victoria! Derrotaste al equipo rival.')
+      _enviarBatalla('terminado', 'victoria')
       return true
     }
   }
@@ -289,6 +323,7 @@ function elegirRelevoPorDerrota(nuevoIndex) {
     Math.max(1, statEfectivo(estadoB.value, 'Velocidad')),
     gaugeB.value,
   )
+  _agregarParticipante(estadoA.value, 'jugador')
   esperandoRelevo.value = false
   combatLog.value.push(`↩  ${estadoA.value.pokemon.nombre} entra en combate.`)
   scrollLog()
@@ -306,8 +341,22 @@ function dispararTurnoEnemigo() {
       return
     }
     consumirAccion('oponente')
-    const habIA = elegirIA(estadoB.value)
+    const habIA         = elegirIA(estadoB.value)
+    const _habEnemigo   = estadoB.value.pokemon.habilidades?.[habIA]
+    const _nombreAtac   = estadoB.value.pokemon.nombre
+    const _nombreObj    = estadoA.value.pokemon.nombre
+    const _hpAntesA     = estadoA.value.hpActual
     combatLog.value.push(...ejecutarAtaque(estadoB.value, estadoA.value, habIA, '🔴 '))
+    turnosBatalla.value.push({
+      numero_turno:     turnoNum.value,
+      participante:     _nombreAtac,
+      equipo_participante: 'oponente',
+      tipo_accion:      'habilidad',
+      habilidad_nombre: _habEnemigo?.nombre ?? null,
+      dano_causado:     Math.max(0, _hpAntesA - estadoA.value.hpActual) || null,
+      objetivo:         _nombreObj,
+      equipo_objetivo:  'jugador',
+    })
     tick(estadoB.value)
     revisarDerrota()
     scrollLog()
@@ -344,7 +393,20 @@ function ejecutarTurno(habIdx) {
   turnoNum.value++
   combatLog.value.push(`— Turno ${turnoNum.value} —`)
 
+  const _habJug     = estadoA.value.pokemon.habilidades?.[habIdx]
+  const _nombreObj  = estadoB.value.pokemon.nombre
+  const _hpAntesB   = estadoB.value.hpActual
   combatLog.value.push(...ejecutarAtaque(estadoA.value, estadoB.value, habIdx, '🟢 '))
+  turnosBatalla.value.push({
+    numero_turno:     turnoNum.value,
+    participante:     estadoA.value.pokemon.nombre,
+    equipo_participante: 'jugador',
+    tipo_accion:      'habilidad',
+    habilidad_nombre: _habJug?.nombre ?? null,
+    dano_causado:     Math.max(0, _hpAntesB - estadoB.value.hpActual) || null,
+    objetivo:         _nombreObj,
+    equipo_objetivo:  'oponente',
+  })
   tick(estadoA.value)
   if (cooldownRelevo.value > 0) cooldownRelevo.value--
   subMenu.value = null
@@ -360,6 +422,16 @@ function ejecutarDefender() {
   combatLog.value.push(`— Turno ${turnoNum.value} —`)
   estadoA.value.defendiendo = true
   combatLog.value.push(`🛡️ ${estadoA.value.pokemon.nombre} adopta postura defensiva.`)
+  turnosBatalla.value.push({
+    numero_turno:        turnoNum.value,
+    participante:        estadoA.value.pokemon.nombre,
+    equipo_participante: 'jugador',
+    tipo_accion:         'defender',
+    habilidad_nombre:    null,
+    dano_causado:        null,
+    objetivo:            null,
+    equipo_objetivo:     null,
+  })
   tick(estadoA.value)
   if (cooldownRelevo.value > 0) cooldownRelevo.value--
   subMenu.value = null
@@ -373,12 +445,23 @@ function ejecutarRelevo(nuevoIndex) {
   turnoNum.value++
   combatLog.value.push(`— Turno ${turnoNum.value} —`)
   const anterior = estadoA.value.pokemon.nombre
+  turnosBatalla.value.push({
+    numero_turno:        turnoNum.value,
+    participante:        anterior,
+    equipo_participante: 'jugador',
+    tipo_accion:         'relevo',
+    habilidad_nombre:    null,
+    dano_causado:        null,
+    objetivo:            null,
+    equipo_objetivo:     null,
+  })
   indexA.value = nuevoIndex
   gaugeA.value = gaugeAlEntrar(
     Math.max(1, statEfectivo(estadoA.value, 'Velocidad')),
     Math.max(1, statEfectivo(estadoB.value, 'Velocidad')),
     gaugeB.value,
   )
+  _agregarParticipante(estadoA.value, 'jugador')
   cooldownRelevo.value = 2
   combatLog.value.push(`🔄 Relevo: ${anterior} → ${estadoA.value.pokemon.nombre}.`)
   tick(estadoA.value); tick(estadoB.value)
@@ -395,6 +478,9 @@ function iniciarCombate(teamsJ, teamsO) {
   turnoNum.value = 0; finalizado.value = false; ganador.value = null
   cooldownRelevo.value = 0; subMenu.value = null; esperandoRelevo.value = false; esperandoEnemigoAct.value = false
   gaugeA.value = 0; gaugeB.value = 0
+  participantesBatalla.value = []; turnosBatalla.value = []
+  estadosJ.value.forEach(est => _agregarParticipante(est, 'jugador'))
+  estadosO.value.forEach(est => _agregarParticipante(est, 'oponente'))
   combatLog.value = [`⚔️  ${estadoA.value.pokemon.nombre} vs ${estadoB.value.pokemon.nombre} — ¡Comienza el combate!`]
   modo.value = 'combate'
   // Si el enemigo es más rápido y le toca primero, actúa automáticamente
@@ -406,6 +492,9 @@ function iniciarCombate(teamsJ, teamsO) {
 }
 
 function volver() {
+  if (modo.value === 'combate' && !finalizado.value) {
+    _enviarBatalla('abandono', null)
+  }
   if (modo.value) modo.value = null
   else emit('volver')
 }
@@ -692,6 +781,7 @@ function volver() {
                   class="btn-hab"
                   :disabled="(estadoA.cooldowns[i] ?? 0) > 0"
                   :title="hab.descripcion"
+                  :class="'tipo-' + hab.tipo"
                   @click="ejecutarTurno(i)"
                 >
                   <span class="hab-nombre">{{ hab.nombre }}</span>
@@ -903,6 +993,9 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 .btn-hab:hover:not(:disabled) { border-color: #888; background: #f5f5f5; }
 .btn-hab:disabled { opacity: 0.4; cursor: not-allowed; }
 .hab-nombre { font-weight: bold; font-size: 0.88rem; }
+.btn-hab.tipo-fisico   .hab-nombre { color: #c06a2a; }
+.btn-hab.tipo-especial .hab-nombre { color: #5a4fcf; }
+.btn-hab.tipo-estado   .hab-nombre { color: #555; }
 .hab-meta   { display: flex; align-items: center; gap: 6px; }
 .hab-tipo   { font-size: 0.6rem; font-weight: bold; padding: 1px 5px; border-radius: 6px; color: white; }
 .tipo-fisico   { background: #c06a2a; }

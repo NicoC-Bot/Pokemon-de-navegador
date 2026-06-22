@@ -9,11 +9,14 @@ import { prepararPokemon } from './utils/calcularStats.js'
 import { materiales, pokemonesWild } from './data/pokemonesExploracion.js'
 import { clases } from './data/clases.js'
 import { obtenerPartidaCompleta, guardarPartida as apiGuardarPartida, actualizarPartida as apiActualizarPartida } from './api/partidas.js'
+import { registrarSesiones } from './api/entrenamientos.js'
 
 const enStartScreen    = ref(true)
 const entrenador       = ref(null)
 const compañero        = ref(null)
 const juegoIniciado    = ref(false)
+const partidaId              = ref(null)
+const sesionesEntrenamiento  = ref([])
 const equipo           = ref([])
 const capturados           = ref([])
 const ultimoDescanso       = ref(null)
@@ -50,10 +53,12 @@ function confirmarInicio() {
 }
 
 function actualizarPokemon({ index, datos }) {
-  const actualizado = { ...equipo.value[index], ...datos }
+  const { sesionEntrenamiento, ...restoData } = datos
+  const actualizado = { ...equipo.value[index], ...restoData }
   equipo.value[index] = actualizado
   const i = capturados.value.findIndex(p => p.uid === actualizado.uid)
   if (i !== -1) capturados.value[i] = actualizado
+  if (sesionEntrenamiento) sesionesEntrenamiento.value.push(sesionEntrenamiento)
 }
 
 function capturarPokemon(pokemon) {
@@ -150,6 +155,7 @@ async function cargarPartida(partida) {
     capturaCooldownHasta.value= datos.estado.captura_cooldown_hasta
     capturasDisponibles.value = datos.estado.capturas_disponibles
     juegoIniciado.value       = true
+    partidaId.value            = datos.id ?? partida.id
     enStartScreen.value       = false
   } catch (e) {
     console.error('Error al cargar partida:', e)
@@ -189,10 +195,19 @@ async function guardarPartida(datos) {
       capturas_disponibles:   capturasDisponibles.value,
     }
 
+    let savedId
     if (datos.id) {
       await apiActualizarPartida(datos.id, datos.nombre, estado, pokemonArray, inventarioArray)
+      savedId = datos.id
     } else {
-      await apiGuardarPartida(datos.nombre, estado, pokemonArray, inventarioArray)
+      const result = await apiGuardarPartida(datos.nombre, estado, pokemonArray, inventarioArray)
+      savedId = result.id
+    }
+    partidaId.value = savedId
+
+    if (sesionesEntrenamiento.value.length > 0) {
+      await registrarSesiones(savedId, sesionesEntrenamiento.value)
+      sesionesEntrenamiento.value = []
     }
   } catch (e) {
     console.error('Error al guardar partida:', e)
@@ -237,6 +252,7 @@ function completarDescanso() {
     :entrenador="entrenador"
     :equipo="equipo"
     :capturados="capturados"
+    :partida-id="partidaId"
     :inventario="inventario"
     :ultimo-descanso="ultimoDescanso"
     :descansando-hasta="descansandoHasta"

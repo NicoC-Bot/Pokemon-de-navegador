@@ -112,7 +112,6 @@ function formatearTiempo(ms) {
   return sec + 's'
 }
 
-onUnmounted(() => { if (intervalo) clearInterval(intervalo) })
 </script>
 
 <template>

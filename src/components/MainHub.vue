@@ -20,6 +20,7 @@ const props = defineProps({
   peDescanso:           Number,
   capturaCooldownHasta: Number,
   capturasDisponibles:  Number,
+  partidaId:            Number,
 })
 
 const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material', 'usar-material', 'actualizar-nombre', 'guardar-partida'])
@@ -220,6 +221,7 @@ function seleccionarParaEntrenar(index) {
           :entrenador="entrenador"
           :equipo="equipo"
           :capturados="capturados"
+          :partida-id="partidaId"
           @volver="vistaActual = 'hub'"
         />
       </div>

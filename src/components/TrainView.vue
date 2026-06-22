@@ -67,11 +67,32 @@ function confirmar() {
 
   xp.value = xpActual
 
+  const sesionEntrenamiento = {
+    pokemon_uid:             props.pokemon.uid,
+    pokemon_nombre:          props.pokemon.nombre,
+    pe_inicial:              props.pokemon.pe,
+    pe_gastado:              props.pokemon.pe - pe.value,
+    pe_final:                pe.value,
+    xp_ganada:               xpGanada,
+    nivel_antes:             props.pokemon.nivel,
+    nivel_despues:           nivel.value,
+    cantidad_entrenamientos: Object.values(contadores.value).filter(c => c > 0).length,
+    stats: Object.entries(contadores.value)
+      .filter(([, c]) => c > 0)
+      .map(([nombre, cantidad]) => ({
+        stat_nombre:        nombre,
+        cantidad_entrenada: cantidad,
+        valor_antes:        props.pokemon.stats[nombre],
+        valor_despues:      stats.value[nombre],
+      })),
+  }
+
   emit('actualizar', {
-    stats: { ...stats.value },
-    pe:    pe.value,
-    nivel: nivel.value,
-    xp:    xp.value,
+    stats:               { ...stats.value },
+    pe:                  pe.value,
+    nivel:               nivel.value,
+    xp:                  xp.value,
+    sesionEntrenamiento,
   })
   confirmado.value = true
   haycambios.value = false
