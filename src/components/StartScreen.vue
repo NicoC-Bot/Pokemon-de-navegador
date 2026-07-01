@@ -4,19 +4,27 @@ import { obtenerPartidas, eliminarPartida } from '../api/partidas.js'
 
 const emit = defineEmits(['nueva-partida', 'cargar-partida'])
 
-const partidas        = ref([])
-const cargando        = ref(true)
+const partidas          = ref([])
+const cargando          = ref(true)
 const confirmarEliminar = ref(null)
+const pagina            = ref(1)
+const paginas           = ref(1)
 
-onMounted(async () => {
+async function cargarPagina(p) {
+  cargando.value = true
   try {
-    partidas.value = await obtenerPartidas()
+    const data     = await obtenerPartidas(p)
+    partidas.value = data.partidas
+    pagina.value   = data.pagina
+    paginas.value  = data.paginas
   } catch (e) {
     console.error('Error al cargar partidas:', e)
   } finally {
     cargando.value = false
   }
-})
+}
+
+onMounted(() => cargarPagina(1))
 
 function pedirConfirmacion(partida) {
   confirmarEliminar.value = partida
@@ -29,7 +37,7 @@ function cancelarEliminar() {
 async function eliminar() {
   try {
     await eliminarPartida(confirmarEliminar.value.id)
-    partidas.value = partidas.value.filter(p => p.id !== confirmarEliminar.value.id)
+    await cargarPagina(pagina.value)
   } catch (e) {
     console.error('Error al eliminar partida:', e)
   }
@@ -98,6 +106,13 @@ function seleccionarPartida(partida) {
               <button class="btn-cargar" @click="seleccionarPartida(partida)">Cargar</button>
               <button class="btn-eliminar" @click="pedirConfirmacion(partida)">🗑️</button>
             </div>
+          </div>
+
+          <!-- Paginación -->
+          <div v-if="paginas > 1" class="paginacion">
+            <button class="btn-pagina" :disabled="pagina <= 1" @click="cargarPagina(pagina - 1)">← Anterior</button>
+            <span class="pagina-info">{{ pagina }} / {{ paginas }}</span>
+            <button class="btn-pagina" :disabled="pagina >= paginas" @click="cargarPagina(pagina + 1)">Siguiente →</button>
           </div>
 
         </div>
@@ -318,6 +333,41 @@ function seleccionarPartida(partida) {
 .btn-eliminar:hover {
   background: rgba(230, 57, 70, 0.15);
   border-color: #e63946;
+}
+
+/* Paginación */
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.btn-pagina {
+  padding: 6px 14px;
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #444;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-pagina:hover:not(:disabled) {
+  background: #3a3a3a;
+  border-color: #666;
+}
+
+.btn-pagina:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pagina-info {
+  font-size: 0.82rem;
+  color: #888;
 }
 
 /* Modal */

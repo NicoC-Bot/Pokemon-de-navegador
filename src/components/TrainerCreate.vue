@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 
-const emit = defineEmits(['entrenador-creado'])
+const emit = defineEmits(['entrenador-creado', 'volver'])
 
 const nombre = ref('')
 const claseElegida = ref(null)
@@ -148,6 +148,7 @@ function crearEntrenador() {
 
 <template>
   <div class="crear-entrenador">
+    <button class="btn-volver" @click="emit('volver')">← Volver</button>
     <h1>Crea tu Entrenador</h1>
 
     <div class="campo-nombre">
@@ -216,8 +217,9 @@ function crearEntrenador() {
     </div>
 
     <button
-      @click="crearEntrenador"
+      class="btn-elegir"
       :style="claseElegida ? { backgroundColor: claseElegida.color } : {}"
+      @click="crearEntrenador"
     >
       Elegir compañero
     </button>
@@ -391,8 +393,23 @@ h2 {
   color: #666;
 }
 
-/* Botón */
-button {
+/* Botones */
+.btn-volver {
+  display: block;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #555;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-volver:hover { border-color: #888; color: #222; }
+
+.btn-elegir {
   display: block;
   margin: 28px auto 0;
   padding: 12px 40px;
@@ -405,7 +422,7 @@ button {
   transition: background-color 0.3s, transform 0.1s;
 }
 
-button:hover {
+.btn-elegir:hover {
   filter: brightness(0.9);
   transform: scale(1.02);
 }

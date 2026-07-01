@@ -1,15 +1,27 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { obtenerEstadisticas } from '../api/partidas.js'
 
 const props = defineProps({
   entrenador: Object,
   capturados: Array,
+  partidaId:  Number,
 })
 
 const emit = defineEmits(['volver', 'actualizar-nombre'])
 
-const editando = ref(false)
+const editando    = ref(false)
 const nuevoNombre = ref('')
+const stats       = ref(null)
+
+onMounted(async () => {
+  if (!props.partidaId) return
+  try {
+    stats.value = await obtenerEstadisticas(props.partidaId)
+  } catch (e) {
+    console.error('Error al cargar estadísticas:', e)
+  }
+})
 
 function activarEdicion() {
   nuevoNombre.value = props.entrenador.nombre
@@ -84,6 +96,33 @@ function confirmarNombre() {
         </div>
       </div>
 
+      <!-- Historial de batallas -->
+      <div v-if="stats" class="perfil-batallas">
+        <h3>Historial de batallas</h3>
+        <div class="batallas-grid">
+          <div class="batalla-dato">
+            <span class="batalla-label">Total</span>
+            <span class="batalla-valor">{{ stats.total_batallas }}</span>
+          </div>
+          <div class="batalla-dato">
+            <span class="batalla-label">Victorias</span>
+            <span class="batalla-valor positivo">{{ stats.victorias }}</span>
+          </div>
+          <div class="batalla-dato">
+            <span class="batalla-label">Derrotas</span>
+            <span class="batalla-valor negativo">{{ stats.derrotas }}</span>
+          </div>
+          <div class="batalla-dato">
+            <span class="batalla-label">Huidas</span>
+            <span class="batalla-valor neutro">{{ stats.huidas }}</span>
+          </div>
+          <div class="batalla-dato">
+            <span class="batalla-label">Turnos prom.</span>
+            <span class="batalla-valor">{{ stats.turnos_promedio ?? '—' }}</span>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
@@ -96,21 +135,19 @@ function confirmarNombre() {
 }
 
 .btn-volver {
-  margin-bottom: 24px;
-  padding: 8px 16px;
+  display: block;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
   background: white;
   border: 2px solid #ccc;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #555;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 
-.btn-volver:hover {
-  border-color: #888;
-  color: #222;
-}
+.btn-volver:hover { border-color: #888; color: #222; }
 
 .perfil-card {
   border: 2px solid #ccc;
@@ -288,4 +325,46 @@ function confirmarNombre() {
 .positivo    { color: #2dc653; }
 .negativo    { color: #e63946; }
 .neutro      { color: #aaa; }
+
+/* Historial de batallas */
+.perfil-batallas {
+  padding: 16px 24px 24px;
+  border-top: 1px solid #eee;
+}
+
+.perfil-batallas h3 {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #666;
+  text-transform: uppercase;
+  margin: 0 0 12px 0;
+}
+
+.batallas-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.batalla-dato {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.batalla-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.batalla-valor {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #222;
+}
 </style>

@@ -21,6 +21,7 @@ const props = defineProps({
   capturaCooldownHasta: Number,
   capturasDisponibles:  Number,
   partidaId:            Number,
+  nombrePartida:        String,
 })
 
 const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material', 'usar-material', 'actualizar-nombre', 'guardar-partida'])
@@ -231,6 +232,7 @@ function seleccionarParaEntrenar(index) {
         <PerfilView
           :entrenador="entrenador"
           :capturados="capturados"
+          :partida-id="partidaId"
           @volver="vistaActual = 'hub'"
           @actualizar-nombre="nombre => emit('actualizar-nombre', nombre)"
         />
@@ -240,6 +242,8 @@ function seleccionarParaEntrenar(index) {
       <div v-else-if="vistaActual === 'guardar'">
         <GuardarPartidaView
           :entrenador="entrenador"
+          :partida-id="partidaId"
+          :nombre-partida="nombrePartida"
           @volver="vistaActual = 'hub'"
           @guardar-partida="datos => emit('guardar-partida', datos)"
         />
@@ -410,21 +414,19 @@ function seleccionarParaEntrenar(index) {
 .accion-card button:hover { background: #444; }
 
 .btn-volver {
-  margin-bottom: 24px;
-  padding: 8px 16px;
+  display: block;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
   background: white;
   border: 2px solid #ccc;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #555;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 
-.btn-volver:hover {
-  border-color: #888;
-  color: #222;
-}
+.btn-volver:hover { border-color: #888; color: #222; }
 
 .proximamente {
   color: #aaa;

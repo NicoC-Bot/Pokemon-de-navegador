@@ -25,6 +25,7 @@ function calcularFinal(nombreStat, valorBase) {
 
 <template>
   <div class="confirm-starter">
+    <button class="btn-volver" @click="emit('volver')">← Volver a seleccionar</button>
 
     <h1>Tu compañero está listo</h1>
     <p class="subtitulo">
@@ -71,9 +72,6 @@ function calcularFinal(nombreStat, valorBase) {
     </div>
 
     <div class="acciones">
-      <button class="btn-volver" @click="emit('volver')">
-        ← Volver a seleccionar
-      </button>
       <button
         class="btn-confirmar"
         :style="{ backgroundColor: compañero.colorElemento }"
@@ -175,20 +173,19 @@ h1 {
 }
 
 .btn-volver {
-  padding: 12px 24px;
-  font-size: 1rem;
-  background-color: white;
-  color: #555;
+  display: block;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
+  background: white;
   border: 2px solid #ccc;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 0.88rem;
+  color: #555;
   transition: border-color 0.2s, color 0.2s;
 }
 
-.btn-volver:hover {
-  border-color: #888;
-  color: #222;
-}
+.btn-volver:hover { border-color: #888; color: #222; }
 
 .btn-confirmar {
   padding: 12px 48px;

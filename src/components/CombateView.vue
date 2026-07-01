@@ -502,6 +502,7 @@ function volver() {
 
 <template>
   <div class="combate-view">
+    <button class="btn-volver" @click="volver">← Volver</button>
 
     <!-- ── Entrada ── -->
     <template v-if="modo === null">
@@ -519,7 +520,6 @@ function volver() {
           <p>Dos Pokémon al azar de tu colección se enfrentan.</p>
         </div>
       </div>
-      <button class="btn-volver" @click="emit('volver')">← Volver</button>
     </template>
 
     <!-- ── Selección manual ── -->
@@ -590,7 +590,6 @@ function volver() {
 
       </div>
       <div class="pie">
-        <button class="btn-volver" @click="volver">← Volver</button>
         <button class="btn-combate" :disabled="!manualListo"
           @click="iniciarCombate(equipoJugador, equipoOponente)">⚔️ Comenzar duelo</button>
       </div>
@@ -633,7 +632,6 @@ function volver() {
         </div>
       </div>
       <div class="pie">
-        <button class="btn-volver" @click="volver">← Volver</button>
         <button class="btn-reroll" @click="generarAleatorio">🎲 Otro aleatorio</button>
         <button class="btn-combate" :disabled="!aleatorioA || !aleatorioB"
           @click="iniciarCombate([aleatorioA], [aleatorioB])">⚔️ Comenzar duelo</button>
@@ -819,7 +817,7 @@ function volver() {
               :class="ganador === 'jugador' ? 'resultado-victoria' : 'resultado-derrota'">
               {{ ganador === 'jugador' ? '¡Victoria!' : 'Derrota...' }}
             </div>
-            <button class="btn-volver" @click="volver">← Volver al menú de combate</button>
+            <button class="btn-volver-resultado" @click="volver">← Volver al menú de combate</button>
           </div>
 
           <!-- Abandonar (rojo, centrado, al fondo) -->
@@ -1037,8 +1035,24 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 
 /* ── Botones generales ── */
 .pie { display: flex; gap: 10px; align-items: center; }
-.btn-volver { padding: 8px 18px; background: white; border: 2px solid #ccc; border-radius: 8px; cursor: pointer; font-size: 0.88rem; color: #555; transition: border-color 0.2s; }
+.btn-volver {
+  display: block;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #555;
+  transition: border-color 0.2s, color 0.2s;
+}
 .btn-volver:hover { border-color: #888; color: #222; }
+.btn-volver-resultado {
+  padding: 8px 18px; background: white; border: 2px solid #ccc; border-radius: 8px;
+  cursor: pointer; font-size: 0.88rem; color: #555; transition: border-color 0.2s, color 0.2s;
+}
+.btn-volver-resultado:hover { border-color: #888; color: #222; }
 .btn-combate { padding: 9px 20px; background: #222; color: white; border: none; border-radius: 8px; font-size: 0.88rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
 .btn-combate:hover:not(:disabled) { background: #444; }
 .btn-combate:disabled { background: #ccc; cursor: not-allowed; }

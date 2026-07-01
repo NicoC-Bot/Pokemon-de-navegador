@@ -61,6 +61,7 @@ function ascender(pokemon) {
 
 <template>
   <div class="compañeros-view">
+    <button class="btn-volver" @click="emit('volver')">← Volver</button>
 
     <h2>Compañeros</h2>
     <p class="subtitulo">Cuida y usa materiales con tus Pokémon.</p>
@@ -203,7 +204,6 @@ function ascender(pokemon) {
       </div>
     </div>
 
-    <button class="btn-volver" @click="emit('volver')">← Volver</button>
 
   </div>
 </template>
@@ -490,6 +490,8 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 
 /* Volver */
 .btn-volver {
+  display: block;
+  margin: 0 auto 20px;
   padding: 8px 18px;
   background: white;
   border: 2px solid #ccc;
@@ -497,7 +499,7 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
   cursor: pointer;
   font-size: 0.88rem;
   color: #555;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 
 .btn-volver:hover { border-color: #888; color: #222; }

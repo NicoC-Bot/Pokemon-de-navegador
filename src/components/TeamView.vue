@@ -1,4 +1,5 @@
 <script setup>
+import { ref, computed } from 'vue'
 import { rarezas } from '../data/pokemonesExploracion.js'
 
 const props = defineProps({
@@ -7,6 +8,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['actualizar-equipo', 'volver'])
+
+const POR_PAGINA = 20
+const paginaCap  = ref(1)
+
+const paginasCap = computed(() => Math.max(1, Math.ceil(props.capturados.length / POR_PAGINA)))
+
+const capturadosPagina = computed(() => {
+  const inicio = (paginaCap.value - 1) * POR_PAGINA
+  return props.capturados.slice(inicio, inicio + POR_PAGINA)
+})
 
 function obtenerRareza(id) {
   return rarezas.find(r => r.id === id) ?? rarezas[0]
@@ -29,6 +40,7 @@ function quitarDelEquipo(pokemon) {
 
 <template>
   <div class="team-view">
+    <button class="btn-volver" @click="emit('volver')">← Volver</button>
 
     <h2>Equipo</h2>
     <p class="subtitulo">Gestiona los Pokémon de tu equipo activo.</p>
@@ -48,7 +60,7 @@ function quitarDelEquipo(pokemon) {
 
         <div class="capturados-grid">
           <div
-            v-for="pokemon in capturados"
+            v-for="pokemon in capturadosPagina"
             :key="pokemon.uid"
             class="cap-card"
             :style="{ borderColor: pokemon.colorElemento }"
@@ -96,11 +108,18 @@ function quitarDelEquipo(pokemon) {
             </div>
           </div>
         </div>
+
+        <!-- Paginación capturados -->
+        <div v-if="paginasCap > 1" class="paginacion-cap">
+          <button class="btn-pagina" :disabled="paginaCap <= 1" @click="paginaCap--">← Anterior</button>
+          <span class="pagina-info">{{ paginaCap }} / {{ paginasCap }}</span>
+          <button class="btn-pagina" :disabled="paginaCap >= paginasCap" @click="paginaCap++">Siguiente →</button>
+        </div>
+
       </div>
 
     </div>
 
-    <button class="btn-volver" @click="emit('volver')">← Volver</button>
 
   </div>
 </template>
@@ -278,8 +297,43 @@ h2 {
   color: #999;
 }
 
+/* Paginación capturados */
+.paginacion-cap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.btn-pagina {
+  padding: 6px 14px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.btn-pagina:hover:not(:disabled) {
+  border-color: #888;
+}
+
+.btn-pagina:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pagina-info {
+  font-size: 0.82rem;
+  color: #888;
+}
+
 /* Volver */
 .btn-volver {
+  display: block;
+  margin: 0 auto 20px;
   padding: 8px 18px;
   background: white;
   border: 2px solid #ccc;
@@ -287,7 +341,7 @@ h2 {
   cursor: pointer;
   font-size: 0.88rem;
   color: #555;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 
 .btn-volver:hover { border-color: #888; color: #222; }

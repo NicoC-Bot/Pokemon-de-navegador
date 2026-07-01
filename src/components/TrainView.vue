@@ -113,6 +113,7 @@ function volver() {
 
 <template>
   <div class="train-view">
+    <button class="btn-volver" @click="volver">← Volver</button>
 
     <!-- Header del Pokémon -->
     <div class="pokemon-header" :style="{ backgroundColor: pokemon.colorElemento, borderColor: pokemon.colorElemento }">
@@ -213,7 +214,6 @@ function volver() {
     </Transition>
 
     <div class="acciones">
-      <button class="btn-volver" @click="volver">← Volver</button>
       <button
         class="btn-confirmar"
         :disabled="!haycambios"
@@ -494,26 +494,25 @@ function volver() {
 
 .acciones {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-top: 32px;
 }
 
 .btn-volver {
-  padding: 10px 20px;
+  display: block;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
   background: white;
   border: 2px solid #ccc;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #555;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 
-.btn-volver:hover {
-  border-color: #888;
-  color: #222;
-}
+.btn-volver:hover { border-color: #888; color: #222; }
 
 .btn-confirmar {
   padding: 10px 28px;

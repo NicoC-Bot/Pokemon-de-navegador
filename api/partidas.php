@@ -12,7 +12,40 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 // GET /api/partidas.php?id=X     → datos completos de una partida
 if ($metodo === 'GET') {
 
-    if (isset($_GET['id'])) {
+    if (isset($_GET['stats'])) {
+        $id = (int) $_GET['stats'];
+        try {
+            $stmt = $pdo->prepare(
+                'SELECT COUNT(b.id) AS total_batallas,
+                        SUM(CASE WHEN br.nombre = ? THEN 1 ELSE 0 END) AS victorias,
+                        SUM(CASE WHEN br.nombre = ? THEN 1 ELSE 0 END) AS derrotas,
+                        SUM(CASE WHEN br.nombre = ? THEN 1 ELSE 0 END) AS huidas,
+                        ROUND(AVG(b.turnos_totales), 1) AS turnos_promedio
+                 FROM partidas p
+                 LEFT JOIN batallas b  ON b.partida_id  = p.id
+                 LEFT JOIN batalla_resultados br ON br.id = b.resultado_id
+                 WHERE p.id = ?
+                 GROUP BY p.id'
+            );
+            $stmt->execute(['victoria', 'derrota', 'huida', $id]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row) {
+                echo json_encode(['total_batallas' => 0, 'victorias' => 0, 'derrotas' => 0, 'huidas' => 0, 'turnos_promedio' => null]);
+            } else {
+                echo json_encode([
+                    'total_batallas'  => (int) $row['total_batallas'],
+                    'victorias'       => (int) $row['victorias'],
+                    'derrotas'        => (int) $row['derrotas'],
+                    'huidas'          => (int) $row['huidas'],
+                    'turnos_promedio' => $row['turnos_promedio'] !== null ? (float) $row['turnos_promedio'] : null,
+                ]);
+            }
+        } catch (Exception $ex) {
+            http_response_code(500);
+            echo json_encode(['error' => $ex->getMessage()]);
+        }
+
+    } elseif (isset($_GET['id'])) {
         $id = (int) $_GET['id'];
 
         // JOIN para recuperar clase_id como identificador string ('fuego', 'agua', ...)
@@ -84,8 +117,25 @@ if ($metodo === 'GET') {
         ]);
 
     } else {
-        $stmt = $pdo->query('SELECT id, nombre, creada_en FROM partidas ORDER BY creada_en DESC');
-        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+        $limite = 10;
+        $pagina = max(1, (int) ($_GET['pagina'] ?? 1));
+        $offset = ($pagina - 1) * $limite;
+
+        $total = (int) $pdo->query('SELECT COUNT(*) FROM partidas')->fetchColumn();
+
+        $stmt = $pdo->prepare(
+            'SELECT id, nombre, creada_en FROM partidas ORDER BY creada_en DESC LIMIT ? OFFSET ?'
+        );
+        $stmt->bindValue(1, $limite, PDO::PARAM_INT);
+        $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        echo json_encode([
+            'partidas' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+            'total'    => $total,
+            'pagina'   => $pagina,
+            'paginas'  => (int) ceil($total / $limite),
+        ]);
     }
 }
 

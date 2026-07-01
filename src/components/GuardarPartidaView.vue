@@ -1,48 +1,29 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { obtenerPartidas } from '../api/partidas.js'
+import { ref } from 'vue'
 
 const props = defineProps({
-  entrenador: Object,
+  entrenador:    Object,
+  partidaId:     Number,
+  nombrePartida: String,
 })
 
 const emit = defineEmits(['volver', 'guardar-partida'])
 
-const nombrePartida          = ref('')
+const nombreNueva            = ref('')
 const guardado               = ref(false)
-const cargando               = ref(true)
-const partidas               = ref([])
-const confirmarSobreescribir = ref(null)
-
-onMounted(async () => {
-  try {
-    partidas.value = await obtenerPartidas()
-  } catch (e) {
-    console.error('Error al cargar partidas:', e)
-  } finally {
-    cargando.value = false
-  }
-})
+const confirmarSobreescribir = ref(false)
 
 function guardarNueva() {
-  if (nombrePartida.value.trim() === '') return
-  emit('guardar-partida', { nombre: nombrePartida.value.trim() })
+  if (nombreNueva.value.trim() === '') return
+  emit('guardar-partida', { nombre: nombreNueva.value.trim() })
   guardado.value = true
-  nombrePartida.value = ''
-}
-
-function pedirConfirmacion(partida) {
-  confirmarSobreescribir.value = partida
-}
-
-function cancelar() {
-  confirmarSobreescribir.value = null
+  nombreNueva.value = ''
 }
 
 function sobreescribir() {
-  emit('guardar-partida', { nombre: confirmarSobreescribir.value.nombre, id: confirmarSobreescribir.value.id })
+  emit('guardar-partida', { nombre: props.nombrePartida, id: props.partidaId })
   guardado.value = true
-  confirmarSobreescribir.value = null
+  confirmarSobreescribir.value = false
 }
 </script>
 
@@ -60,7 +41,7 @@ function sobreescribir() {
         <p class="seccion-sub">Crea un nuevo guardado con el estado actual.</p>
         <div class="guardar-form">
           <input
-            v-model="nombrePartida"
+            v-model="nombreNueva"
             class="input-nombre"
             type="text"
             placeholder="Ej: Mi partida principal"
@@ -70,24 +51,14 @@ function sobreescribir() {
         </div>
       </div>
 
-      <!-- Sobreescribir -->
-      <div class="seccion seccion-sobreescribir">
+      <!-- Sobreescribir partida actual -->
+      <div v-if="partidaId" class="seccion seccion-sobreescribir">
         <h3 class="seccion-titulo">Sobreescribir existente</h3>
-        <p class="seccion-sub">Reemplaza el progreso de una partida guardada.</p>
-
-        <div v-if="cargando" class="partidas-vacio">Cargando...</div>
-
-        <div v-else-if="partidas.length === 0" class="partidas-vacio">
-          No hay partidas guardadas.
-        </div>
-
-        <div v-else class="partidas-lista">
-          <div v-for="partida in partidas" :key="partida.id" class="partida-fila">
-            <div class="partida-info">
-              <span class="partida-nombre">{{ partida.nombre }}</span>
-              <span class="partida-fecha">{{ partida.creada_en }}</span>
-            </div>
-            <button class="btn-sobreescribir" @click="pedirConfirmacion(partida)">
+        <p class="seccion-sub">Reemplaza el progreso de la partida actual.</p>
+        <div class="partidas-lista">
+          <div class="partida-fila">
+            <span class="partida-nombre">{{ nombrePartida }}</span>
+            <button class="btn-sobreescribir" @click="confirmarSobreescribir = true">
               Sobreescribir
             </button>
           </div>
@@ -102,15 +73,15 @@ function sobreescribir() {
   </div>
 
   <!-- Modal de confirmación -->
-  <div v-if="confirmarSobreescribir" class="modal-overlay" @click.self="cancelar">
+  <div v-if="confirmarSobreescribir" class="modal-overlay" @click.self="confirmarSobreescribir = false">
     <div class="modal">
       <h3>¿Sobreescribir partida?</h3>
       <p>
-        El progreso guardado en <strong>{{ confirmarSobreescribir.nombre }}</strong>
+        El progreso guardado en <strong>{{ nombrePartida }}</strong>
         será reemplazado por el estado actual. Esta acción no se puede deshacer.
       </p>
       <div class="modal-acciones">
-        <button class="btn-modal-cancelar" @click="cancelar">Cancelar</button>
+        <button class="btn-modal-cancelar" @click="confirmarSobreescribir = false">Cancelar</button>
         <button class="btn-modal-confirmar" @click="sobreescribir">Sobreescribir</button>
       </div>
     </div>
@@ -126,21 +97,19 @@ function sobreescribir() {
 }
 
 .btn-volver {
-  margin-bottom: 24px;
-  padding: 8px 16px;
+  display: block;
+  margin: 0 auto 20px;
+  padding: 8px 18px;
   background: white;
   border: 2px solid #ccc;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: #555;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 
-.btn-volver:hover {
-  border-color: #888;
-  color: #222;
-}
+.btn-volver:hover { border-color: #888; color: #222; }
 
 .guardar-card {
   border: 2px solid #e0e0e0;

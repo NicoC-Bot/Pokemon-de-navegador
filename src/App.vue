@@ -16,6 +16,7 @@ const entrenador       = ref(null)
 const compañero        = ref(null)
 const juegoIniciado    = ref(false)
 const partidaId              = ref(null)
+const nombrePartida          = ref(null)
 const sesionesEntrenamiento  = ref([])
 const equipo           = ref([])
 const capturados           = ref([])
@@ -155,7 +156,8 @@ async function cargarPartida(partida) {
     capturaCooldownHasta.value= datos.estado.captura_cooldown_hasta
     capturasDisponibles.value = datos.estado.capturas_disponibles
     juegoIniciado.value       = true
-    partidaId.value            = datos.id ?? partida.id
+    partidaId.value           = datos.id ?? partida.id
+    nombrePartida.value       = partida.nombre
     enStartScreen.value       = false
   } catch (e) {
     console.error('Error al cargar partida:', e)
@@ -203,7 +205,8 @@ async function guardarPartida(datos) {
       const result = await apiGuardarPartida(datos.nombre, estado, pokemonArray, inventarioArray)
       savedId = result.id
     }
-    partidaId.value = savedId
+    partidaId.value    = savedId
+    nombrePartida.value = datos.nombre
 
     if (sesionesEntrenamiento.value.length > 0) {
       await registrarSesiones(savedId, sesionesEntrenamiento.value)
@@ -234,6 +237,7 @@ function completarDescanso() {
   <TrainerCreate
     v-else-if="entrenador === null"
     @entrenador-creado="recibirEntrenador"
+    @volver="enStartScreen = true"
   />
   <StarterSelection
     v-else-if="compañero === null"
@@ -253,6 +257,7 @@ function completarDescanso() {
     :equipo="equipo"
     :capturados="capturados"
     :partida-id="partidaId"
+    :nombre-partida="nombrePartida"
     :inventario="inventario"
     :ultimo-descanso="ultimoDescanso"
     :descansando-hasta="descansandoHasta"

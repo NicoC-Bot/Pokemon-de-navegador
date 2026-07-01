@@ -1,7 +1,7 @@
 const BASE = import.meta.env.VITE_API_BASE ?? '/api'
 
-export async function obtenerPartidas() {
-  const res = await fetch(`${BASE}/partidas.php`)
+export async function obtenerPartidas(pagina = 1) {
+  const res = await fetch(`${BASE}/partidas.php?pagina=${pagina}`)
   if (!res.ok) throw new Error('Error al obtener partidas')
   return res.json()
 }
@@ -29,6 +29,12 @@ export async function actualizarPartida(id, nombre, estado, pokemon, inventario)
     body: JSON.stringify({ id, nombre, estado, pokemon, inventario }),
   })
   if (!res.ok) throw new Error('Error al actualizar partida')
+  return res.json()
+}
+
+export async function obtenerEstadisticas(id) {
+  const res = await fetch(`${BASE}/partidas.php?stats=${id}`)
+  if (!res.ok) throw new Error('Error al obtener estadísticas')
   return res.json()
 }
 
