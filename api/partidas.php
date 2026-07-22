@@ -51,11 +51,12 @@ if ($metodo === 'GET') {
         // JOIN para recuperar clase_id como identificador string ('fuego', 'agua', ...)
         $stmt = $pdo->prepare(
             'SELECT p.id, p.nombre, p.creada_en, p.ultima_modificacion,
-                    p.entrenador_nombre, cc.identificador AS clase_id,
+                    e.nombre AS entrenador_nombre, cc.identificador AS clase_id,
                     p.ultimo_descanso, p.descansando_hasta, p.pe_descanso,
                     p.captura_cooldown_hasta, p.capturas_disponibles
              FROM partidas p
              JOIN clases_catalogo cc ON cc.id = p.clase_id
+             JOIN entrenadores e    ON e.id  = p.entrenador_id
              WHERE p.id = ?'
         );
         $stmt->execute([$id]);
@@ -100,7 +101,12 @@ if ($metodo === 'GET') {
             $p['pe']              = (int) $p['pe'];
         }
 
-        $stmt = $pdo->prepare('SELECT material_id, cantidad FROM inventario_partida WHERE partida_id = ?');
+        $stmt = $pdo->prepare(
+            'SELECT m.tipo AS material_id, ip.cantidad
+             FROM inventario_partida ip
+             JOIN materiales m ON m.id = ip.material_id
+             WHERE ip.partida_id = ?'
+        );
         $stmt->execute([$id]);
         $inventario = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($inventario as &$inv) {
@@ -153,17 +159,26 @@ elseif ($metodo === 'POST') {
         $claseId = $catClases[$e['clase_id']] ?? null;
         if ($claseId === null) throw new Exception("Clase desconocida: {$e['clase_id']}");
 
+        // Resolver entrenador_nombre → entrenador_id (crear si no existe)
+        $stmtEnt = $pdo->prepare('SELECT id FROM entrenadores WHERE nombre = ?');
+        $stmtEnt->execute([$e['entrenador_nombre']]);
+        $entrenadorId = $stmtEnt->fetchColumn();
+        if (!$entrenadorId) {
+            $pdo->prepare('INSERT INTO entrenadores (nombre) VALUES (?)')->execute([$e['entrenador_nombre']]);
+            $entrenadorId = (int) $pdo->lastInsertId();
+        }
+
         $stmt = $pdo->prepare(
             'INSERT INTO partidas
              (nombre, creada_en, ultima_modificacion,
-              entrenador_nombre, clase_id,
+              entrenador_id, clase_id,
               ultimo_descanso, descansando_hasta, pe_descanso,
               captura_cooldown_hasta, capturas_disponibles)
              VALUES (?, NOW(), NOW(), ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $body['nombre'],
-            $e['entrenador_nombre'], $claseId,
+            $entrenadorId, $claseId,
             $e['ultimo_descanso'], $e['descansando_hasta'], $e['pe_descanso'] ?? 0,
             $e['captura_cooldown_hasta'], $e['capturas_disponibles'] ?? 3,
         ]);
@@ -188,9 +203,12 @@ elseif ($metodo === 'POST') {
             ]);
         }
 
+        $catMateriales = $pdo->query('SELECT tipo, id FROM materiales')->fetchAll(PDO::FETCH_KEY_PAIR);
         $stmt = $pdo->prepare('INSERT INTO inventario_partida (partida_id, material_id, cantidad) VALUES (?, ?, ?)');
         foreach ($body['inventario'] as $inv) {
-            $stmt->execute([$partidaId, $inv['material_id'], $inv['cantidad']]);
+            $materialId = $catMateriales[$inv['material_id']] ?? null;
+            if ($materialId === null) throw new Exception("Material no encontrado: {$inv['material_id']}");
+            $stmt->execute([$partidaId, $materialId, $inv['cantidad']]);
         }
 
         $pdo->commit();
@@ -217,17 +235,26 @@ elseif ($metodo === 'PUT') {
         $claseId = $catClases[$e['clase_id']] ?? null;
         if ($claseId === null) throw new Exception("Clase desconocida: {$e['clase_id']}");
 
+        // Resolver entrenador_nombre → entrenador_id (crear si no existe)
+        $stmtEnt = $pdo->prepare('SELECT id FROM entrenadores WHERE nombre = ?');
+        $stmtEnt->execute([$e['entrenador_nombre']]);
+        $entrenadorId = $stmtEnt->fetchColumn();
+        if (!$entrenadorId) {
+            $pdo->prepare('INSERT INTO entrenadores (nombre) VALUES (?)')->execute([$e['entrenador_nombre']]);
+            $entrenadorId = (int) $pdo->lastInsertId();
+        }
+
         $stmt = $pdo->prepare(
             'UPDATE partidas
              SET nombre = ?, ultima_modificacion = NOW(),
-                 entrenador_nombre = ?, clase_id = ?,
+                 entrenador_id = ?, clase_id = ?,
                  ultimo_descanso = ?, descansando_hasta = ?, pe_descanso = ?,
                  captura_cooldown_hasta = ?, capturas_disponibles = ?
              WHERE id = ?'
         );
         $stmt->execute([
             $body['nombre'],
-            $e['entrenador_nombre'], $claseId,
+            $entrenadorId, $claseId,
             $e['ultimo_descanso'], $e['descansando_hasta'], $e['pe_descanso'] ?? 0,
             $e['captura_cooldown_hasta'], $e['capturas_disponibles'] ?? 3,
             $id,
@@ -257,9 +284,12 @@ elseif ($metodo === 'PUT') {
         $stmt = $pdo->prepare('DELETE FROM inventario_partida WHERE partida_id = ?');
         $stmt->execute([$id]);
 
+        $catMateriales = $pdo->query('SELECT tipo, id FROM materiales')->fetchAll(PDO::FETCH_KEY_PAIR);
         $stmt = $pdo->prepare('INSERT INTO inventario_partida (partida_id, material_id, cantidad) VALUES (?, ?, ?)');
         foreach ($body['inventario'] as $inv) {
-            $stmt->execute([$id, $inv['material_id'], $inv['cantidad']]);
+            $materialId = $catMateriales[$inv['material_id']] ?? null;
+            if ($materialId === null) throw new Exception("Material no encontrado: {$inv['material_id']}");
+            $stmt->execute([$id, $materialId, $inv['cantidad']]);
         }
 
         $pdo->commit();

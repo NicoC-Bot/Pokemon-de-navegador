@@ -19,6 +19,7 @@ USE practica2;
 --  BORRADO EN ORDEN INVERSO DE DEPENDENCIAS
 -- =============================================================
 
+DROP VIEW  IF EXISTS vista_entrenadores_pokemon;
 DROP TABLE IF EXISTS entrenamiento_stats;
 DROP TABLE IF EXISTS entrenamiento_sesiones;
 DROP TABLE IF EXISTS batalla_turnos;
@@ -27,6 +28,7 @@ DROP TABLE IF EXISTS batallas;
 DROP TABLE IF EXISTS inventario_partida;
 DROP TABLE IF EXISTS pokemon_partida;
 DROP TABLE IF EXISTS partidas;
+DROP TABLE IF EXISTS entrenadores;
 DROP TABLE IF EXISTS materiales;
 DROP TABLE IF EXISTS habilidades_catalogo;
 DROP TABLE IF EXISTS pokemon_catalogo;
@@ -35,7 +37,7 @@ DROP TABLE IF EXISTS stat_tipos;
 DROP TABLE IF EXISTS habilidad_tipos;
 DROP TABLE IF EXISTS tipos_material;
 DROP TABLE IF EXISTS tipos_accion;
-DROP TABLE IF EXISTS equipos;
+DROP TABLE IF EXISTS participante_tipos;
 DROP TABLE IF EXISTS batalla_resultados;
 DROP TABLE IF EXISTS batalla_estados;
 DROP TABLE IF EXISTS rareza_tipos;
@@ -102,13 +104,13 @@ INSERT INTO batalla_resultados VALUES (1, 'victoria'), (2, 'derrota');
 
 -- -------------------------------------------------------------
 
-CREATE TABLE equipos (
+CREATE TABLE participante_tipos (
   id     TINYINT UNSIGNED NOT NULL,
   nombre VARCHAR(20)      NOT NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO equipos VALUES (1, 'jugador'), (2, 'oponente');
+INSERT INTO participante_tipos VALUES (1, 'jugador'), (2, 'oponente');
 
 -- -------------------------------------------------------------
 
@@ -241,7 +243,8 @@ INSERT INTO habilidades_catalogo (id, pokemon_id, nombre, tipo_id, potencia) VAL
 -- =============================================================
 
 CREATE TABLE materiales (
-  id            VARCHAR(64)      NOT NULL,
+  id            INT              NOT NULL AUTO_INCREMENT,
+  tipo          VARCHAR(64)      NOT NULL,
   nombre        VARCHAR(100)     NOT NULL,
   icono         VARCHAR(10)      NOT NULL,
   descripcion   VARCHAR(255)     NOT NULL,
@@ -282,12 +285,18 @@ INSERT INTO materiales (id, nombre, icono, descripcion, tipo_id, hp_recuperado, 
 --  PARTE 4 — PARTIDAS Y DATOS DE JUEGO
 -- =============================================================
 
+CREATE TABLE entrenadores (
+  id     INT          NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE partidas (
   id                     INT              NOT NULL AUTO_INCREMENT,
   nombre                 VARCHAR(100)     NOT NULL,
   creada_en              DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP,
   ultima_modificacion    DATETIME         NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  entrenador_nombre      VARCHAR(100)     NOT NULL,
+  entrenador_id          INT              NOT NULL,
   clase_id               TINYINT UNSIGNED NOT NULL,
   ultimo_descanso        BIGINT           NULL DEFAULT NULL,
   descansando_hasta      BIGINT           NULL DEFAULT NULL,
@@ -295,7 +304,8 @@ CREATE TABLE partidas (
   captura_cooldown_hasta BIGINT           NULL DEFAULT NULL,
   capturas_disponibles   TINYINT          NOT NULL DEFAULT 3,
   PRIMARY KEY (id),
-  CONSTRAINT fk_partida_clase FOREIGN KEY (clase_id) REFERENCES clases_catalogo (id)
+  CONSTRAINT fk_partida_entrenador FOREIGN KEY (entrenador_id) REFERENCES entrenadores    (id),
+  CONSTRAINT fk_partida_clase      FOREIGN KEY (clase_id)      REFERENCES clases_catalogo (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- -------------------------------------------------------------
@@ -327,7 +337,7 @@ CREATE TABLE inventario_partida (
   PRIMARY KEY (id),
   UNIQUE KEY uq_partida_material (partida_id, material_id),
   CONSTRAINT fk_inventario_partida  FOREIGN KEY (partida_id)  REFERENCES partidas  (id) ON DELETE CASCADE,
-  CONSTRAINT fk_inventario_material FOREIGN KEY (material_id) REFERENCES materiales(id)
+  CONSTRAINT fk_inventario_material FOREIGN KEY (material_id) REFERENCES materiales (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =============================================================
@@ -358,7 +368,7 @@ CREATE TABLE batalla_participantes (
   PRIMARY KEY (id),
   CONSTRAINT fk_participante_batalla FOREIGN KEY (batalla_id) REFERENCES batallas        (id) ON DELETE CASCADE,
   CONSTRAINT fk_part_pokemon         FOREIGN KEY (pokemon_id) REFERENCES pokemon_catalogo(id),
-  CONSTRAINT fk_part_equipo          FOREIGN KEY (equipo_id)  REFERENCES equipos         (id)
+  CONSTRAINT fk_part_equipo          FOREIGN KEY (equipo_id)  REFERENCES participante_tipos (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- -------------------------------------------------------------
@@ -403,6 +413,54 @@ CREATE TABLE entrenamiento_sesiones (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- -------------------------------------------------------------
+
+-- =============================================================
+--  PARTE 7 — ÍNDICES
+-- =============================================================
+
+CREATE INDEX idx_pp_partida_id       ON pokemon_partida        (partida_id);
+CREATE INDEX idx_pp_pokemon_id       ON pokemon_partida        (pokemon_id);
+CREATE INDEX idx_pp_en_equipo        ON pokemon_partida        (en_equipo);
+CREATE INDEX idx_inv_partida_id      ON inventario_partida     (partida_id);
+CREATE INDEX idx_bat_partida_id      ON batallas               (partida_id);
+CREATE INDEX idx_part_batalla_id     ON batalla_participantes  (batalla_id);
+CREATE INDEX idx_turno_batalla_id    ON batalla_turnos         (batalla_id);
+CREATE INDEX idx_ent_partida_id      ON entrenamiento_sesiones (partida_id);
+CREATE INDEX idx_partidas_entrenador ON partidas               (entrenador_id);
+CREATE INDEX idx_materiales_tipo     ON materiales             (tipo);
+
+-- =============================================================
+--  PARTE 8 — TABLAS DE LOG Y TRIGGERS
+-- =============================================================
+
+CREATE TABLE partidas_log (
+  id         INT         NOT NULL AUTO_INCREMENT,
+  partida_id INT         NOT NULL,
+  accion     VARCHAR(20) NOT NULL,
+  fecha      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE pokemon_nivel_log (
+  id            INT         NOT NULL AUTO_INCREMENT,
+  partida_id    INT         NOT NULL,
+  pokemon_uid   VARCHAR(64) NOT NULL,
+  nivel_antes   TINYINT     NOT NULL,
+  nivel_despues TINYINT     NOT NULL,
+  fecha         DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE batallas_log (
+  id         INT      NOT NULL AUTO_INCREMENT,
+  batalla_id INT      NOT NULL,
+  fecha      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =============================================================
+--  PARTE 9 — ENTRENAMIENTOS
+-- =============================================================
 
 CREATE TABLE entrenamiento_stats (
   id                 INT UNSIGNED     NOT NULL AUTO_INCREMENT,
