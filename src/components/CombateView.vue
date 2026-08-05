@@ -10,7 +10,7 @@ const props = defineProps({
   capturados: Array,
   partidaId:  Number,
 })
-const emit = defineEmits(['volver'])
+const emit = defineEmits(['volver', 'actualizar-hp'])
 
 const modo = ref(null) // null | 'manual' | 'aleatorio' | 'combate'
 
@@ -151,7 +151,7 @@ async function _enviarBatalla(estado, resultado) {
 
 // ── Helpers de combate ────────────────────────────────────────────────
 function crearEstado(pokemon) {
-  return { pokemon, hpActual: pokemon.stats.HP, cooldowns: {}, debuffs: [], esquiva: false, defendiendo: false }
+  return { pokemon, hpActual: pokemon.hpActual ?? pokemon.stats.HP, cooldowns: {}, debuffs: [], esquiva: false, defendiendo: false }
 }
 function hpColor(hp, max) {
   const r = hp / max
@@ -496,7 +496,11 @@ function volver() {
     _enviarBatalla('abandono', null)
   }
   if (modo.value) modo.value = null
-  else emit('volver')
+  else {
+    const hpData = estadosJ.value.map(est => ({ uid: est.pokemon.uid, hpActual: est.hpActual }))
+    emit('actualizar-hp', hpData)
+    emit('volver')
+  }
 }
 </script>
 

@@ -48,10 +48,10 @@ if ($metodo === 'GET') {
     } elseif (isset($_GET['id'])) {
         $id = (int) $_GET['id'];
 
-        // JOIN para recuperar clase_id como identificador string ('fuego', 'agua', ...)
+        // JOIN para recuperar clase_id como identificador string ('fuego', 'agua', ...) y sus stats
         $stmt = $pdo->prepare(
             'SELECT p.id, p.nombre, p.creada_en, p.ultima_modificacion,
-                    e.nombre AS entrenador_nombre, cc.identificador AS clase_id,
+                    e.nombre AS entrenador_nombre, cc.identificador AS clase_id, cc.stats AS clase_stats,
                     p.ultimo_descanso, p.descansando_hasta, p.pe_descanso,
                     p.captura_cooldown_hasta, p.capturas_disponibles
              FROM partidas p
@@ -71,6 +71,7 @@ if ($metodo === 'GET') {
         $estado = [
             'entrenador_nombre'      => $partida['entrenador_nombre'],
             'clase_id'               => $partida['clase_id'],
+            'clase_stats'            => json_decode($partida['clase_stats'], true),
             'ultimo_descanso'        => $partida['ultimo_descanso']        !== null ? (int) $partida['ultimo_descanso']        : null,
             'descansando_hasta'      => $partida['descansando_hasta']      !== null ? (int) $partida['descansando_hasta']      : null,
             'pe_descanso'            => (int) $partida['pe_descanso'],
@@ -130,7 +131,11 @@ if ($metodo === 'GET') {
         $total = (int) $pdo->query('SELECT COUNT(*) FROM partidas')->fetchColumn();
 
         $stmt = $pdo->prepare(
-            'SELECT id, nombre, creada_en FROM partidas ORDER BY creada_en DESC LIMIT ? OFFSET ?'
+            'SELECT p.id, p.nombre, p.creada_en, e.nombre AS entrenador_nombre, cc.identificador AS clase_id
+             FROM partidas p
+             JOIN entrenadores e    ON e.id  = p.entrenador_id
+             JOIN clases_catalogo cc ON cc.id = p.clase_id
+             ORDER BY p.creada_en DESC LIMIT ? OFFSET ?'
         );
         $stmt->bindValue(1, $limite, PDO::PARAM_INT);
         $stmt->bindValue(2, $offset, PDO::PARAM_INT);
@@ -307,17 +312,10 @@ elseif ($metodo === 'DELETE') {
     $body = json_decode(file_get_contents('php://input'), true);
     $id   = (int) $body['id'];
 
-    $pdo->beginTransaction();
     try {
-        $pdo->prepare('DELETE FROM entrenamiento_sesiones WHERE partida_id = ?')->execute([$id]);
-        $pdo->prepare('DELETE FROM batallas              WHERE partida_id = ?')->execute([$id]);
-        $pdo->prepare('DELETE FROM inventario_partida    WHERE partida_id = ?')->execute([$id]);
-        $pdo->prepare('DELETE FROM pokemon_partida       WHERE partida_id = ?')->execute([$id]);
-        $pdo->prepare('DELETE FROM partidas              WHERE id         = ?')->execute([$id]);
-        $pdo->commit();
+        $pdo->prepare('CALL sp_eliminar_partida(?)')->execute([$id]);
         echo json_encode(['ok' => true]);
     } catch (Exception $ex) {
-        $pdo->rollBack();
         http_response_code(500);
         echo json_encode(['error' => $ex->getMessage()]);
     }

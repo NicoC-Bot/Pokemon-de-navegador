@@ -22,12 +22,26 @@ function materialDeElemento(elemento) {
   return materialesAscension.find(m => m.elemento === elemento)
 }
 
-function alimentoElemental(elemento) {
-  return materialesElementales.find(m => m.elemento === elemento)
+function curaEfectiva(mat, pokemon) {
+  return mat.elemento === pokemon.elemento ? mat.hpRecuperado : Math.floor(mat.hpRecuperado * 0.5)
+}
+
+function elementoCompatible(mat, pokemon) {
+  return mat.elemento === pokemon.elemento
+}
+
+function elementalesConStock(pokemon) {
+  return materialesElementales.filter(m => (props.inventario[m.id] ?? 0) > 0)
+}
+
+function maxHp(pokemon) {
+  return pokemon.stats?.HP ?? pokemon.statsBase?.HP ?? pokemon.hpActual ?? 0
 }
 
 function hpPorcentaje(pokemon) {
-  return Math.min(100, ((pokemon.hpActual ?? pokemon.stats.HP) / pokemon.stats.HP) * 100)
+  const max = maxHp(pokemon)
+  if (!max) return 0
+  return Math.min(100, ((pokemon.hpActual ?? max) / max) * 100)
 }
 
 function puedeAscender(pokemon) {
@@ -37,7 +51,98 @@ function puedeAscender(pokemon) {
   return (props.inventario[mat.id] ?? 0) >= COSTO_ASCENSION
 }
 
-const expandidas = ref({})
+const expandidas            = ref({})
+const seleccionados         = ref({})
+const confirmandoSobrepaso  = ref({})
+
+function toggleSeleccion(pokemon, mat) {
+  const uid    = pokemon.uid
+  const actual = seleccionados.value[uid] ?? {}
+  confirmandoSobrepaso.value = { ...confirmandoSobrepaso.value, [uid]: false }
+  if (actual[mat.id]) {
+    const { [mat.id]: _, ...resto } = actual
+    seleccionados.value = { ...seleccionados.value, [uid]: resto }
+  } else {
+    seleccionados.value = { ...seleccionados.value, [uid]: { ...actual, [mat.id]: 1 } }
+  }
+}
+
+function aumentarCantidad(pokemon, mat) {
+  const uid      = pokemon.uid
+  const actual   = seleccionados.value[uid] ?? {}
+  const cantActual = actual[mat.id] ?? 0
+  if (cantActual >= (props.inventario[mat.id] ?? 0)) return
+  seleccionados.value = { ...seleccionados.value, [uid]: { ...actual, [mat.id]: cantActual + 1 } }
+}
+
+function disminuirCantidad(pokemon, mat) {
+  const uid      = pokemon.uid
+  const actual   = seleccionados.value[uid] ?? {}
+  const cantActual = actual[mat.id] ?? 0
+  if (cantActual <= 1) {
+    const { [mat.id]: _, ...resto } = actual
+    seleccionados.value = { ...seleccionados.value, [uid]: resto }
+  } else {
+    seleccionados.value = { ...seleccionados.value, [uid]: { ...actual, [mat.id]: cantActual - 1 } }
+  }
+}
+
+function cantidadSeleccionada(pokemon, mat) {
+  return (seleccionados.value[pokemon.uid] ?? {})[mat.id] ?? 0
+}
+
+function estaSeleccionado(pokemon, mat) {
+  return !!(seleccionados.value[pokemon.uid] ?? {})[mat.id]
+}
+
+function tieneSeleccion(pokemon) {
+  const sel = seleccionados.value[pokemon.uid] ?? {}
+  return Object.values(sel).some(c => c > 0)
+}
+
+function confirmarCuracion(pokemon) {
+  if (sobrepasaHpMax(pokemon)) {
+    confirmandoSobrepaso.value = { ...confirmandoSobrepaso.value, [pokemon.uid]: true }
+    return
+  }
+  _ejecutarCuracion(pokemon)
+}
+
+function _ejecutarCuracion(pokemon) {
+  const sel = seleccionados.value[pokemon.uid] ?? {}
+  for (const [materialId, cantidad] of Object.entries(sel)) {
+    if (cantidad > 0) emit('usar-material', { pokemonUid: pokemon.uid, materialId, cantidad })
+  }
+  seleccionados.value        = { ...seleccionados.value, [pokemon.uid]: {} }
+  confirmandoSobrepaso.value = { ...confirmandoSobrepaso.value, [pokemon.uid]: false }
+}
+
+function aceptarSobrepaso(pokemon) {
+  _ejecutarCuracion(pokemon)
+}
+
+function cancelarSobrepaso(pokemon) {
+  confirmandoSobrepaso.value = { ...confirmandoSobrepaso.value, [pokemon.uid]: false }
+}
+
+function totalCura(pokemon) {
+  const sel = seleccionados.value[pokemon.uid] ?? {}
+  return Object.entries(sel).reduce((total, [materialId, cantidad]) => {
+    const mat = materiales.find(m => m.id === materialId)
+    if (!mat) return total
+    const cura = mat.tipo === 'curativo-elemental'
+      ? (mat.elemento === pokemon.elemento ? mat.hpRecuperado : Math.floor(mat.hpRecuperado * 0.5))
+      : mat.hpRecuperado
+    return total + (cura * cantidad)
+  }, 0)
+}
+
+function sobrepasaHpMax(pokemon) {
+  const max = maxHp(pokemon)
+  if (!max) return false
+  const hpActual = pokemon.hpActual ?? max
+  return tieneSeleccion(pokemon) && (hpActual + totalCura(pokemon)) > max
+}
 
 function toggleHabilidad(pokemonUid, habId) {
   const key = pokemonUid + '-' + habId
@@ -99,8 +204,8 @@ function ascender(pokemon) {
             <div class="seccion-titulo">Salud</div>
             <div class="hp-labels">
               <span>HP</span>
-              <span :class="{ 'hp-bajo': (pokemon.hpActual ?? pokemon.stats.HP) <= Math.floor(pokemon.stats.HP * 0.25) }">
-                {{ pokemon.hpActual ?? pokemon.stats.HP }} / {{ pokemon.stats.HP }}
+              <span :class="{ 'hp-bajo': (pokemon.hpActual ?? maxHp(pokemon)) <= Math.floor(maxHp(pokemon) * 0.25) }">
+                {{ pokemon.hpActual ?? maxHp(pokemon) }} / {{ maxHp(pokemon) || '?' }}
               </span>
             </div>
             <div class="barra-fondo">
@@ -111,28 +216,67 @@ function ascender(pokemon) {
             </div>
 
             <div class="curativos">
-              <button
-                v-for="mat in materialesCurativos"
-                :key="mat.id"
-                class="btn-curar"
-                :disabled="(inventario[mat.id] ?? 0) === 0 || (pokemon.hpActual ?? pokemon.stats.HP) >= pokemon.stats.HP"
-                @click="curar(pokemon, mat)"
-              >
-                {{ mat.icono }} +{{ mat.hpRecuperado }} <span class="mat-count">({{ inventario[mat.id] ?? 0 }})</span>
-              </button>
+              <div class="seccion-curativos-label">Curación normal</div>
+              <div v-for="mat in materialesCurativos" :key="mat.id" class="item-curar-wrap">
+                <button
+                  class="btn-curar"
+                  :class="{ seleccionado: estaSeleccionado(pokemon, mat) }"
+                  :disabled="(inventario[mat.id] ?? 0) === 0 || (pokemon.hpActual ?? maxHp(pokemon)) >= maxHp(pokemon)"
+                  @click="toggleSeleccion(pokemon, mat)"
+                >
+                  {{ mat.icono }} +{{ mat.hpRecuperado }} <span class="mat-count">({{ inventario[mat.id] ?? 0 }})</span>
+                </button>
+                <div v-if="estaSeleccionado(pokemon, mat)" class="cantidad-controles">
+                  <button class="btn-cantidad" @click="disminuirCantidad(pokemon, mat)">−</button>
+                  <span class="cantidad-valor">{{ cantidadSeleccionada(pokemon, mat) }}</span>
+                  <button class="btn-cantidad" :disabled="cantidadSeleccionada(pokemon, mat) >= (inventario[mat.id] ?? 0)" @click="aumentarCantidad(pokemon, mat)">+</button>
+                </div>
+              </div>
             </div>
 
-            <div v-if="alimentoElemental(pokemon.elemento)" class="curativos-elementales">
-              <div class="elemental-label">Alimento elemental</div>
-              <button
-                class="btn-curar btn-elemental"
-                :style="{ borderColor: pokemon.colorElemento, color: pokemon.colorElemento }"
-                :disabled="(inventario[alimentoElemental(pokemon.elemento).id] ?? 0) === 0 || (pokemon.hpActual ?? pokemon.stats.HP) >= pokemon.stats.HP"
-                @click="curar(pokemon, alimentoElemental(pokemon.elemento))"
-              >
-                {{ alimentoElemental(pokemon.elemento).icono }} +{{ alimentoElemental(pokemon.elemento).hpRecuperado }}
-                <span class="mat-count">({{ inventario[alimentoElemental(pokemon.elemento).id] ?? 0 }})</span>
-              </button>
+            <div v-if="elementalesConStock(pokemon).length > 0" class="curativos-elementales">
+              <div class="seccion-curativos-label">Curación elemental</div>
+              <div v-for="mat in elementalesConStock(pokemon)" :key="mat.id" class="item-curar-wrap">
+                <button
+                  class="btn-curar btn-elemental"
+                  :class="{ incompatible: !elementoCompatible(mat, pokemon), seleccionado: estaSeleccionado(pokemon, mat) }"
+                  :style="elementoCompatible(mat, pokemon) ? { borderColor: pokemon.colorElemento, color: pokemon.colorElemento } : {}"
+                  :disabled="(pokemon.hpActual ?? maxHp(pokemon)) >= maxHp(pokemon)"
+                  @click="toggleSeleccion(pokemon, mat)"
+                >
+                  {{ mat.icono }} +{{ curaEfectiva(mat, pokemon) }}
+                  <span v-if="!elementoCompatible(mat, pokemon)" class="reduccion-texto">-50%</span>
+                  <span class="mat-count">({{ inventario[mat.id] ?? 0 }})</span>
+                </button>
+                <div v-if="estaSeleccionado(pokemon, mat)" class="cantidad-controles">
+                  <button class="btn-cantidad" @click="disminuirCantidad(pokemon, mat)">−</button>
+                  <span class="cantidad-valor">{{ cantidadSeleccionada(pokemon, mat) }}</span>
+                  <button class="btn-cantidad" :disabled="cantidadSeleccionada(pokemon, mat) >= (inventario[mat.id] ?? 0)" @click="aumentarCantidad(pokemon, mat)">+</button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="btn-confirmar-cura"
+              :disabled="!tieneSeleccion(pokemon) || confirmandoSobrepaso[pokemon.uid]"
+              @click="confirmarCuracion(pokemon)"
+            >
+              Confirmar curación
+              <span v-if="tieneSeleccion(pokemon)" class="cura-total">+{{ totalCura(pokemon) }} HP</span>
+            </button>
+
+            <p v-if="sobrepasaHpMax(pokemon) && !confirmandoSobrepaso[pokemon.uid]" class="aviso-sobrepasa">
+              ⚠ La curación sobrepasa la vida máxima del compañero.
+            </p>
+
+            <div v-if="confirmandoSobrepaso[pokemon.uid]" class="card-advertencia">
+              <p class="advertencia-mensaje">
+                ⚠ La curación total (+{{ totalCura(pokemon) }} HP) superará el máximo de {{ maxHp(pokemon) }} HP. ¿Confirmar de todas formas?
+              </p>
+              <div class="advertencia-acciones">
+                <button class="btn-advertencia-si" @click="aceptarSobrepaso(pokemon)">Sí, curar</button>
+                <button class="btn-advertencia-no" @click="cancelarSobrepaso(pokemon)">No, cancelar</button>
+              </div>
             </div>
           </div>
 
@@ -349,19 +493,21 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 
 .mat-count { opacity: 0.7; }
 
-/* Alimento elemental */
-.curativos-elementales {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.elemental-label {
+.seccion-curativos-label {
+  width: 100%;
   font-size: 0.65rem;
   font-weight: bold;
   text-transform: uppercase;
   color: #aaa;
+  margin-bottom: 2px;
+}
+
+/* Alimento elemental */
+.curativos-elementales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
 }
 
 .btn-elemental {
@@ -371,6 +517,106 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 }
 
 .btn-elemental:not(:disabled):hover { background: #f0f0f0; }
+
+.btn-curar.seleccionado {
+  background: #edfff3;
+  border-color: #1a9e3f;
+  color: #1a9e3f;
+}
+
+.item-curar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cantidad-controles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 4px;
+}
+
+.btn-cantidad {
+  width: 22px;
+  height: 22px;
+  font-size: 0.9rem;
+  line-height: 1;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  color: #555;
+}
+
+.btn-cantidad:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cantidad-valor {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #333;
+  min-width: 16px;
+  text-align: center;
+}
+
+.btn-confirmar-cura {
+  width: 100%;
+  padding: 7px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  background: #2dc653;
+  color: white;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.btn-confirmar-cura:not(:disabled):hover { filter: brightness(0.9); }
+
+.btn-confirmar-cura:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.cura-total {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-left: 4px;
+}
+
+.aviso-sobrepasa {
+  font-size: 0.72rem;
+  color: #e6a817;
+  margin-top: 4px;
+}
+
+.card-advertencia {
+  background: #fff8e0;
+  border: 1px solid #f4c430;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  color: #a07800;
+  margin-top: 6px;
+}
+
+.btn-elemental.incompatible {
+  border-color: #ddd;
+  color: #999;
+  opacity: 0.8;
+}
+
+.reduccion-texto {
+  font-size: 0.65rem;
+  color: #e63946;
+  font-weight: normal;
+  margin-left: 2px;
+}
 
 /* Habilidades */
 .habilidades { display: flex; flex-direction: column; gap: 5px; }
@@ -487,6 +733,35 @@ h2 { font-size: 1.4rem; margin-bottom: 4px; }
 }
 
 .sin-habilidades { font-size: 0.75rem; color: #aaa; }
+
+.advertencia-mensaje {
+  font-size: 0.78rem;
+  color: #a07800;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.advertencia-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-advertencia-si,
+.btn-advertencia-no {
+  flex: 1;
+  padding: 6px 0;
+  font-size: 0.78rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.btn-advertencia-si  { background: #2dc653; color: white; }
+.btn-advertencia-no  { background: #eee;    color: #555;  }
+.btn-advertencia-si:hover  { filter: brightness(0.9); }
+.btn-advertencia-no:hover  { filter: brightness(0.95); }
 
 /* Volver */
 .btn-volver {

@@ -1,6 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { obtenerPartidas, eliminarPartida } from '../api/partidas.js'
+import { clases } from '../data/clases.js'
+
+const claseEmoji = Object.fromEntries(
+  clases.map(c => [c.id, c.label.split(' ')[0]])
+)
 
 const emit = defineEmits(['nueva-partida', 'cargar-partida'])
 
@@ -100,7 +105,10 @@ function seleccionarPartida(partida) {
           >
             <div class="partida-info">
               <span class="partida-nombre">{{ partida.nombre }}</span>
-              <span class="partida-fecha">{{ partida.creada_en }}</span>
+              <span class="partida-meta">
+                <span class="partida-clase">{{ claseEmoji[partida.clase_id] }}</span>
+                {{ partida.entrenador_nombre }}
+              </span>
             </div>
             <div class="partida-acciones">
               <button class="btn-cargar" @click="seleccionarPartida(partida)">Cargar</button>
@@ -293,9 +301,16 @@ function seleccionarPartida(partida) {
   font-weight: bold;
 }
 
-.partida-fecha {
+.partida-meta {
   font-size: 0.78rem;
   color: #777;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.partida-clase {
+  font-size: 0.9rem;
 }
 
 .partida-acciones {

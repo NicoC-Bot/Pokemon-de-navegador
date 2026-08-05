@@ -24,10 +24,11 @@ const props = defineProps({
   nombrePartida:        String,
 })
 
-const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material', 'usar-material', 'actualizar-nombre', 'guardar-partida'])
+const emit = defineEmits(['actualizar-pokemon', 'capturar-pokemon', 'actualizar-equipo', 'actualizar-capturas', 'iniciar-descanso', 'completar-descanso', 'agregar-material', 'usar-material', 'actualizar-nombre', 'guardar-partida', 'actualizar-hp'])
 
 const vistaActual    = ref('hub')
 const pokemonIndex   = ref(0)
+const sidebarAbierto = ref(true)
 
 function actualizarPokemon(index, datos) {
   emit('actualizar-pokemon', { index, datos })
@@ -43,7 +44,11 @@ function seleccionarParaEntrenar(index) {
   <div class="hub">
 
     <!-- Sidebar izquierda -->
-    <aside class="sidebar">
+    <button class="sidebar-toggle" @click="sidebarAbierto = !sidebarAbierto">
+      {{ sidebarAbierto ? '◀' : '▶' }}
+    </button>
+
+    <aside class="sidebar" :class="{ colapsado: !sidebarAbierto }">
 
       <div class="trainer-card" :style="{ borderColor: entrenador.clase.color }">
         <div class="trainer-header" :style="{ backgroundColor: entrenador.clase.color }">
@@ -55,22 +60,24 @@ function seleccionarParaEntrenar(index) {
         </div>
       </div>
 
-      <div class="equipo">
-        <h3>Equipo</h3>
-        <div class="slots">
-          <div
-            v-for="(slot, index) in 6"
-            class="slot"
-            :class="{
-              ocupado:      equipo[index] !== undefined,
-              seleccionado: vistaActual === 'entrenar' && index === pokemonIndex,
-              entrenable:   vistaActual === 'entrenar' && equipo[index] !== undefined,
-            }"
-            @click="vistaActual === 'entrenar' ? seleccionarParaEntrenar(index) : null"
-          >
-            <span v-if="equipo[index]" class="slot-nombre">{{ equipo[index].nombre }}</span>
-            <span v-else class="slot-vacio">—</span>
-          </div>
+      <div class="sidebar-bonos">
+        <h3>Bonos de clase</h3>
+        <div v-for="stat in entrenador.clase.stats" :key="stat.nombre" class="bono-fila">
+          <span class="bono-nombre">{{ stat.nombre }}</span>
+          <span class="bono-valor" :class="stat.valor > 0 ? 'positivo' : stat.valor < 0 ? 'negativo' : 'neutro'">
+            {{ stat.valor > 0 ? '+' + stat.valor : stat.valor === 0 ? '—' : stat.valor }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="sidebar-conteo">
+        <div class="conteo-item">
+          <span class="conteo-num">{{ capturados.length }}</span>
+          <span class="conteo-label">Capturados</span>
+        </div>
+        <div class="conteo-item">
+          <span class="conteo-num">{{ equipo.length }}</span>
+          <span class="conteo-label">En equipo</span>
         </div>
       </div>
 
@@ -224,6 +231,7 @@ function seleccionarParaEntrenar(index) {
           :capturados="capturados"
           :partida-id="partidaId"
           @volver="vistaActual = 'hub'"
+          @actualizar-hp="emit('actualizar-hp', $event)"
         />
       </div>
 
@@ -257,20 +265,52 @@ function seleccionarParaEntrenar(index) {
 <style scoped>
 .hub {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   font-family: sans-serif;
 }
 
 .sidebar {
   width: 240px;
-  min-height: 100vh;
-  background: #f4f4f4;
-  border-right: 1px solid #e0e0e0;
-  padding: 24px 16px;
+  height: 100%;
+  overflow: hidden;
+  background: #1e2a3a;
+  border-right: 1px solid #2c3e52;
+  padding: 52px 16px 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
   flex-shrink: 0;
+  transition: width 0.25s ease, padding 0.25s ease;
+}
+
+.sidebar.colapsado {
+  width: 0;
+  padding: 0;
+  border-right: none;
+}
+
+.sidebar.colapsado .trainer-card,
+.sidebar.colapsado .equipo {
+  display: none;
+}
+
+.sidebar-toggle {
+  position: fixed;
+  top: 16px;
+  left: 8px;
+  z-index: 100;
+  background: #1e2a3a;
+  border: 1px solid #2c3e52;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 4px 7px;
+  color: #8aaabb;
+}
+
+.sidebar-toggle:hover {
+  background: #243447;
 }
 
 .trainer-card {
@@ -299,44 +339,61 @@ function seleccionarParaEntrenar(index) {
   opacity: 0.9;
 }
 
-.equipo h3 {
+.sidebar-bonos h3 {
   font-size: 0.9rem;
   font-weight: bold;
-  color: #666;
+  color: #8aaabb;
   text-transform: uppercase;
   margin-bottom: 10px;
 }
 
-.slots {
+.bono-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  padding: 3px 0;
+}
+
+.bono-nombre {
+  color: #c8d8e4;
+}
+
+.bono-valor {
+  font-weight: bold;
+}
+
+.positivo { color: #2dc653; }
+.negativo { color: #e63946; }
+.neutro   { color: #bbb; }
+
+.sidebar-conteo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.conteo-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.slot {
-  padding: 8px 12px;
-  border: 2px dashed #ccc;
+  align-items: center;
+  background: #243447;
   border-radius: 8px;
-  font-size: 0.85rem;
-  color: #aaa;
+  padding: 10px 6px;
+  gap: 4px;
+}
+
+.conteo-num {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #e8f0f6;
+}
+
+.conteo-label {
+  font-size: 0.72rem;
+  color: #8aaabb;
+  text-transform: uppercase;
   text-align: center;
-  transition: border-color 0.2s;
-}
-
-.slot.ocupado {
-  border-style: solid;
-  border-color: #888;
-  color: #222;
-}
-
-.slot.entrenable {
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.slot.entrenable:hover {
-  border-color: #555;
-  background: #ececec;
 }
 
 .slot.seleccionado {
@@ -350,6 +407,8 @@ function seleccionarParaEntrenar(index) {
 .contenido {
   flex: 1;
   padding: 28px 32px;
+  overflow-y: auto;
+  height: 100%;
 }
 
 .bienvenida { margin-bottom: 24px; }

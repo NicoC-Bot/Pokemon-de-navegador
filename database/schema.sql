@@ -170,6 +170,7 @@ CREATE TABLE clases_catalogo (
   identificador VARCHAR(20)      NOT NULL,
   label         VARCHAR(50)      NOT NULL,
   color         VARCHAR(20)      NOT NULL,
+  stats         JSON             NULL,
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -415,7 +416,30 @@ CREATE TABLE entrenamiento_sesiones (
 -- -------------------------------------------------------------
 
 -- =============================================================
---  PARTE 7 — ÍNDICES
+--  PARTE 7 — STORED PROCEDURES
+-- =============================================================
+
+DELIMITER //
+CREATE PROCEDURE sp_eliminar_partida(IN p_id INT)
+BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+
+  START TRANSACTION;
+    DELETE FROM entrenamiento_sesiones WHERE partida_id = p_id;
+    DELETE FROM batallas               WHERE partida_id = p_id;
+    DELETE FROM inventario_partida     WHERE partida_id = p_id;
+    DELETE FROM pokemon_partida        WHERE partida_id = p_id;
+    DELETE FROM partidas               WHERE id         = p_id;
+  COMMIT;
+END //
+DELIMITER ;
+
+-- =============================================================
+--  PARTE 8 — ÍNDICES
 -- =============================================================
 
 CREATE INDEX idx_pp_partida_id       ON pokemon_partida        (partida_id);

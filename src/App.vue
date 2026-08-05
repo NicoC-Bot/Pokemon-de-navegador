@@ -12,6 +12,7 @@ import { obtenerPartidaCompleta, guardarPartida as apiGuardarPartida, actualizar
 import { registrarSesiones } from './api/entrenamientos.js'
 
 const enStartScreen    = ref(true)
+const cargandoPartida  = ref(false)
 const entrenador       = ref(null)
 const compañero        = ref(null)
 const juegoIniciado    = ref(false)
@@ -85,15 +86,21 @@ function iniciarDescanso({ minutos, pe }) {
 }
 
 function usarMaterial({ pokemonUid, materialId, cantidad = 1 }) {
+  const mat = materiales.find(m => m.id === materialId)
+  if (!mat) return
+
   const stockActual = inventario.value[materialId] ?? 0
   if (stockActual < cantidad) return
   inventario.value = { ...inventario.value, [materialId]: stockActual - cantidad }
-
-  const mat = materiales.find(m => m.id === materialId)
   const actualizar = p => {
     if (p.uid !== pokemonUid) return p
-    if (mat.tipo === 'curativo' || mat.tipo === 'curativo-elemental') {
-      return { ...p, hpActual: Math.min(p.stats.HP, (p.hpActual ?? p.stats.HP) + mat.hpRecuperado) }
+    const maxHP = p.stats?.HP ?? p.statsBase?.HP ?? p.hpActual ?? 0
+    if (mat.tipo === 'curativo') {
+      return { ...p, hpActual: Math.min(maxHP, (p.hpActual ?? maxHP) + mat.hpRecuperado * cantidad) }
+    }
+    if (mat.tipo === 'curativo-elemental') {
+      const cura = mat.elemento === p.elemento ? mat.hpRecuperado : Math.floor(mat.hpRecuperado * 0.5)
+      return { ...p, hpActual: Math.min(maxHP, (p.hpActual ?? maxHP) + cura * cantidad) }
     }
     if (mat.tipo === 'ascension' && (p.nivelAscension ?? 0) < 2) {
       return { ...p, nivelAscension: (p.nivelAscension ?? 0) + 1 }
@@ -110,11 +117,15 @@ function actualizarNombre(nuevoNombre) {
 }
 
 async function cargarPartida(partida) {
+  cargandoPartida.value = true
   try {
     const datos = await obtenerPartidaCompleta(partida.id)
 
     const mapPokemon = p => {
       const base = pokemonesWild.find(pw => pw.nombre === p.nombre) ?? {}
+      const statsDB   = (p.stats && p.stats.HP !== undefined) ? p.stats : null
+      const statsBase = base.stats ?? null
+      const stats     = statsDB ?? statsBase ?? {}
       return {
         uid:            p.uid,
         nombre:         p.nombre,
@@ -127,10 +138,10 @@ async function cargarPartida(partida) {
         nivelAscension: p.nivel_ascension,
         hpActual:       p.hp_actual,
         pe:             p.pe,
-        stats:          p.stats,
-        statsBase:      base.stats         ?? p.stats,
+        stats,
+        statsBase:      statsBase ?? stats,
         xp:             0,
-        id:             base.id            ?? '',
+        id:             base.id ?? '',
       }
     }
 
@@ -161,6 +172,8 @@ async function cargarPartida(partida) {
     enStartScreen.value       = false
   } catch (e) {
     console.error('Error al cargar partida:', e)
+  } finally {
+    cargandoPartida.value = false
   }
 }
 
@@ -217,6 +230,13 @@ async function guardarPartida(datos) {
   }
 }
 
+function actualizarHpPostCombate(hpData) {
+  const mapa = Object.fromEntries(hpData.map(({ uid, hpActual }) => [uid, hpActual]))
+  const actualizar = p => mapa[p.uid] !== undefined ? { ...p, hpActual: mapa[p.uid] } : p
+  equipo.value     = equipo.value.map(actualizar)
+  capturados.value = capturados.value.map(actualizar)
+}
+
 function completarDescanso() {
   equipo.value = equipo.value.map(p => ({
     ...p,
@@ -229,8 +249,15 @@ function completarDescanso() {
 </script>
 
 <template>
+  <div v-if="cargandoPartida" class="pantalla-carga">
+    <div class="carga-contenido">
+      <div class="carga-spinner"></div>
+      <p>Cargando partida...</p>
+    </div>
+  </div>
+
   <StartScreen
-    v-if="enStartScreen"
+    v-else-if="enStartScreen"
     @nueva-partida="enStartScreen = false"
     @cargar-partida="cargarPartida"
   />
@@ -274,5 +301,39 @@ function completarDescanso() {
     @usar-material="usarMaterial"
     @actualizar-nombre="actualizarNombre"
     @guardar-partida="guardarPartida"
+    @actualizar-hp="actualizarHpPostCombate"
   />
 </template>
+
+<style scoped>
+.pantalla-carga {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+}
+
+.carga-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #aaa;
+  font-family: sans-serif;
+  font-size: 0.95rem;
+}
+
+.carga-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #333;
+  border-top-color: white;
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+</style>
