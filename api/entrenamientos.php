@@ -5,6 +5,7 @@ header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/validar.php';
 
 $metodo = $_SERVER['REQUEST_METHOD'];
 
@@ -16,8 +17,8 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 if ($metodo === 'POST') {
     $body = json_decode(file_get_contents('php://input'), true);
 
-    $partidaId = $body['partida_id'] ?? null;
-    $sesiones  = $body['sesiones']   ?? [];
+    $partidaId = int_opt($body, 'partida_id');
+    $sesiones  = arr_req($body, 'sesiones');
 
     if (empty($sesiones)) {
         echo json_encode(['ok' => true, 'insertadas' => 0]);
@@ -51,15 +52,15 @@ if ($metodo === 'POST') {
 
             $stmtS->execute([
                 $partidaId,
-                $s['pokemon_uid'],
+                str_req($s, 'pokemon_uid', 50),
                 $pokemonId,
-                (int) $s['pe_inicial'],
-                (int) $s['pe_gastado'],
-                (int) $s['pe_final'],
-                (int) ($s['xp_ganada'] ?? 0),
-                (int) $s['nivel_antes'],
-                (int) $s['nivel_despues'],
-                (int) $s['cantidad_entrenamientos'],
+                int_req($s, 'pe_inicial'),
+                int_req($s, 'pe_gastado'),
+                int_req($s, 'pe_final'),
+                int_opt($s, 'xp_ganada') ?? 0,
+                int_req($s, 'nivel_antes'),
+                int_req($s, 'nivel_despues'),
+                int_req($s, 'cantidad_entrenamientos'),
             ]);
             $sesionId = (int) $pdo->lastInsertId();
 
@@ -70,9 +71,9 @@ if ($metodo === 'POST') {
                 $stmtE->execute([
                     $sesionId,
                     $statId,
-                    (int) $stat['cantidad_entrenada'],
-                    (int) $stat['valor_antes'],
-                    (int) $stat['valor_despues'],
+                    int_req($stat, 'cantidad_entrenada'),
+                    int_req($stat, 'valor_antes'),
+                    int_req($stat, 'valor_despues'),
                 ]);
             }
         }

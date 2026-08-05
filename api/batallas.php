@@ -5,6 +5,7 @@ header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/validar.php';
 
 $metodo = $_SERVER['REQUEST_METHOD'];
 
@@ -35,10 +36,10 @@ if ($metodo === 'POST') {
              VALUES (?, ?, ?, ?)'
         );
         $stmt->execute([
-            $body['partida_id'] ?? null,
+            int_opt($body, 'partida_id'),
             $estadoId,
             $resultadoId,
-            (int) ($body['turnos_totales'] ?? 0),
+            int_opt($body, 'turnos_totales') ?? 0,
         ]);
         $batallaId = (int) $pdo->lastInsertId();
 
@@ -86,11 +87,11 @@ if ($metodo === 'POST') {
 
             $stmtT->execute([
                 $batallaId,
-                (int) $t['numero_turno'],
+                int_req($t, 'numero_turno'),
                 $participanteId,
                 $tipoAccId,
                 $habilidadId,
-                isset($t['dano_causado']) ? (int) $t['dano_causado'] : null,
+                int_opt($t, 'dano_causado'),
                 $objetivoId,
             ]);
         }

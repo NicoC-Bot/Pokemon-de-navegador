@@ -5,6 +5,7 @@ header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/validar.php';
 
 $metodo = $_SERVER['REQUEST_METHOD'];
 
@@ -13,7 +14,7 @@ $metodo = $_SERVER['REQUEST_METHOD'];
 if ($metodo === 'GET') {
 
     if (isset($_GET['stats'])) {
-        $id = (int) $_GET['stats'];
+        $id = int_get('stats');
         try {
             $stmt = $pdo->prepare(
                 'SELECT COUNT(b.id) AS total_batallas,
@@ -46,7 +47,7 @@ if ($metodo === 'GET') {
         }
 
     } elseif (isset($_GET['id'])) {
-        $id = (int) $_GET['id'];
+        $id = int_get('id');
 
         // JOIN para recuperar clase_id como identificador string ('fuego', 'agua', ...) y sus stats
         $stmt = $pdo->prepare(
@@ -125,7 +126,7 @@ if ($metodo === 'GET') {
 
     } else {
         $limite = 10;
-        $pagina = max(1, (int) ($_GET['pagina'] ?? 1));
+        $pagina = max(1, int_get('pagina') ?? 1);
         $offset = ($pagina - 1) * $limite;
 
         $total = (int) $pdo->query('SELECT COUNT(*) FROM partidas')->fetchColumn();
@@ -156,20 +157,22 @@ elseif ($metodo === 'POST') {
 
     $pdo->beginTransaction();
     try {
-        $e = $body['estado'];
+        $e = arr_req($body, 'estado');
 
         // Resolver clase string → id numérico
         $catClases = $pdo->query('SELECT identificador, id FROM clases_catalogo')
                          ->fetchAll(PDO::FETCH_KEY_PAIR);
-        $claseId = $catClases[$e['clase_id']] ?? null;
-        if ($claseId === null) throw new Exception("Clase desconocida: {$e['clase_id']}");
+        $claseIdStr = str_req($e, 'clase_id', 50);
+        $claseId    = $catClases[$claseIdStr] ?? null;
+        if ($claseId === null) throw new Exception("Clase desconocida: {$claseIdStr}");
 
         // Resolver entrenador_nombre → entrenador_id (crear si no existe)
+        $entrenadorNombre = str_req($e, 'entrenador_nombre', 100);
         $stmtEnt = $pdo->prepare('SELECT id FROM entrenadores WHERE nombre = ?');
-        $stmtEnt->execute([$e['entrenador_nombre']]);
+        $stmtEnt->execute([$entrenadorNombre]);
         $entrenadorId = $stmtEnt->fetchColumn();
         if (!$entrenadorId) {
-            $pdo->prepare('INSERT INTO entrenadores (nombre) VALUES (?)')->execute([$e['entrenador_nombre']]);
+            $pdo->prepare('INSERT INTO entrenadores (nombre) VALUES (?)')->execute([$entrenadorNombre]);
             $entrenadorId = (int) $pdo->lastInsertId();
         }
 
@@ -182,10 +185,10 @@ elseif ($metodo === 'POST') {
              VALUES (?, NOW(), NOW(), ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
-            $body['nombre'],
+            str_req($body, 'nombre', 100),
             $entrenadorId, $claseId,
-            $e['ultimo_descanso'], $e['descansando_hasta'], $e['pe_descanso'] ?? 0,
-            $e['captura_cooldown_hasta'], $e['capturas_disponibles'] ?? 3,
+            int_opt($e, 'ultimo_descanso'), int_opt($e, 'descansando_hasta'), int_opt($e, 'pe_descanso') ?? 0,
+            int_opt($e, 'captura_cooldown_hasta'), int_opt($e, 'capturas_disponibles') ?? 3,
         ]);
         $partidaId = (int) $pdo->lastInsertId();
 
@@ -198,22 +201,22 @@ elseif ($metodo === 'POST') {
              (partida_id, uid, pokemon_id, nivel, nivel_ascension, hp_actual, pe, stats, en_equipo, slot_equipo)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
-        foreach ($body['pokemon'] as $p) {
-            $pokemonId = $catPokemon[$p['nombre']] ?? null;
+        foreach (arr_req($body, 'pokemon') as $p) {
+            $pokemonId = $catPokemon[str_req($p, 'nombre', 100)] ?? null;
             if ($pokemonId === null) throw new Exception("Pokemon no encontrado en catálogo: {$p['nombre']}");
             $stmt->execute([
-                $partidaId, $p['uid'], $pokemonId,
-                $p['nivel'], $p['nivel_ascension'], $p['hp_actual'], $p['pe'],
-                json_encode($p['stats']), $p['en_equipo'] ? 1 : 0, $p['slot_equipo'],
+                $partidaId, str_req($p, 'uid', 50), $pokemonId,
+                int_req($p, 'nivel'), int_req($p, 'nivel_ascension'), int_req($p, 'hp_actual'), int_req($p, 'pe'),
+                json_encode(arr_req($p, 'stats')), bool_req($p, 'en_equipo') ? 1 : 0, int_opt($p, 'slot_equipo'),
             ]);
         }
 
         $catMateriales = $pdo->query('SELECT tipo, id FROM materiales')->fetchAll(PDO::FETCH_KEY_PAIR);
         $stmt = $pdo->prepare('INSERT INTO inventario_partida (partida_id, material_id, cantidad) VALUES (?, ?, ?)');
-        foreach ($body['inventario'] as $inv) {
-            $materialId = $catMateriales[$inv['material_id']] ?? null;
+        foreach (arr_req($body, 'inventario') as $inv) {
+            $materialId = $catMateriales[str_req($inv, 'material_id', 50)] ?? null;
             if ($materialId === null) throw new Exception("Material no encontrado: {$inv['material_id']}");
-            $stmt->execute([$partidaId, $materialId, $inv['cantidad']]);
+            $stmt->execute([$partidaId, $materialId, int_req($inv, 'cantidad')]);
         }
 
         $pdo->commit();
@@ -233,19 +236,21 @@ elseif ($metodo === 'PUT') {
 
     $pdo->beginTransaction();
     try {
-        $e = $body['estado'];
+        $e = arr_req($body, 'estado');
 
-        $catClases = $pdo->query('SELECT identificador, id FROM clases_catalogo')
-                         ->fetchAll(PDO::FETCH_KEY_PAIR);
-        $claseId = $catClases[$e['clase_id']] ?? null;
-        if ($claseId === null) throw new Exception("Clase desconocida: {$e['clase_id']}");
+        $catClases  = $pdo->query('SELECT identificador, id FROM clases_catalogo')
+                          ->fetchAll(PDO::FETCH_KEY_PAIR);
+        $claseIdStr = str_req($e, 'clase_id', 50);
+        $claseId    = $catClases[$claseIdStr] ?? null;
+        if ($claseId === null) throw new Exception("Clase desconocida: {$claseIdStr}");
 
         // Resolver entrenador_nombre → entrenador_id (crear si no existe)
+        $entrenadorNombre = str_req($e, 'entrenador_nombre', 100);
         $stmtEnt = $pdo->prepare('SELECT id FROM entrenadores WHERE nombre = ?');
-        $stmtEnt->execute([$e['entrenador_nombre']]);
+        $stmtEnt->execute([$entrenadorNombre]);
         $entrenadorId = $stmtEnt->fetchColumn();
         if (!$entrenadorId) {
-            $pdo->prepare('INSERT INTO entrenadores (nombre) VALUES (?)')->execute([$e['entrenador_nombre']]);
+            $pdo->prepare('INSERT INTO entrenadores (nombre) VALUES (?)')->execute([$entrenadorNombre]);
             $entrenadorId = (int) $pdo->lastInsertId();
         }
 
@@ -258,10 +263,10 @@ elseif ($metodo === 'PUT') {
              WHERE id = ?'
         );
         $stmt->execute([
-            $body['nombre'],
+            str_req($body, 'nombre', 100),
             $entrenadorId, $claseId,
-            $e['ultimo_descanso'], $e['descansando_hasta'], $e['pe_descanso'] ?? 0,
-            $e['captura_cooldown_hasta'], $e['capturas_disponibles'] ?? 3,
+            int_opt($e, 'ultimo_descanso'), int_opt($e, 'descansando_hasta'), int_opt($e, 'pe_descanso') ?? 0,
+            int_opt($e, 'captura_cooldown_hasta'), int_opt($e, 'capturas_disponibles') ?? 3,
             $id,
         ]);
 
@@ -276,13 +281,13 @@ elseif ($metodo === 'PUT') {
              (partida_id, uid, pokemon_id, nivel, nivel_ascension, hp_actual, pe, stats, en_equipo, slot_equipo)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
-        foreach ($body['pokemon'] as $p) {
-            $pokemonId = $catPokemon[$p['nombre']] ?? null;
+        foreach (arr_req($body, 'pokemon') as $p) {
+            $pokemonId = $catPokemon[str_req($p, 'nombre', 100)] ?? null;
             if ($pokemonId === null) throw new Exception("Pokemon no encontrado en catálogo: {$p['nombre']}");
             $stmt->execute([
-                $id, $p['uid'], $pokemonId,
-                $p['nivel'], $p['nivel_ascension'], $p['hp_actual'], $p['pe'],
-                json_encode($p['stats']), $p['en_equipo'] ? 1 : 0, $p['slot_equipo'],
+                $id, str_req($p, 'uid', 50), $pokemonId,
+                int_req($p, 'nivel'), int_req($p, 'nivel_ascension'), int_req($p, 'hp_actual'), int_req($p, 'pe'),
+                json_encode(arr_req($p, 'stats')), bool_req($p, 'en_equipo') ? 1 : 0, int_opt($p, 'slot_equipo'),
             ]);
         }
 
@@ -291,10 +296,10 @@ elseif ($metodo === 'PUT') {
 
         $catMateriales = $pdo->query('SELECT tipo, id FROM materiales')->fetchAll(PDO::FETCH_KEY_PAIR);
         $stmt = $pdo->prepare('INSERT INTO inventario_partida (partida_id, material_id, cantidad) VALUES (?, ?, ?)');
-        foreach ($body['inventario'] as $inv) {
-            $materialId = $catMateriales[$inv['material_id']] ?? null;
+        foreach (arr_req($body, 'inventario') as $inv) {
+            $materialId = $catMateriales[str_req($inv, 'material_id', 50)] ?? null;
             if ($materialId === null) throw new Exception("Material no encontrado: {$inv['material_id']}");
-            $stmt->execute([$id, $materialId, $inv['cantidad']]);
+            $stmt->execute([$id, $materialId, int_req($inv, 'cantidad')]);
         }
 
         $pdo->commit();
@@ -310,7 +315,7 @@ elseif ($metodo === 'PUT') {
 // DELETE → elimina una partida y todo su historial asociado
 elseif ($metodo === 'DELETE') {
     $body = json_decode(file_get_contents('php://input'), true);
-    $id   = (int) $body['id'];
+    $id   = int_req($body, 'id');
 
     try {
         $pdo->prepare('CALL sp_eliminar_partida(?)')->execute([$id]);

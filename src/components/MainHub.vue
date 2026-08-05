@@ -406,9 +406,9 @@ function seleccionarParaEntrenar(index) {
 
 .contenido {
   flex: 1;
+  min-height: 0;
   padding: 28px 32px;
   overflow-y: auto;
-  height: 100%;
 }
 
 .bienvenida { margin-bottom: 24px; }

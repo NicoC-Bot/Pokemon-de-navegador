@@ -170,7 +170,7 @@ CREATE TABLE clases_catalogo (
   identificador VARCHAR(20)      NOT NULL,
   label         VARCHAR(50)      NOT NULL,
   color         VARCHAR(20)      NOT NULL,
-  stats         JSON             NULL,
+  stats         LONGTEXT         CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`stats`)),
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -244,43 +244,44 @@ INSERT INTO habilidades_catalogo (id, pokemon_id, nombre, tipo_id, potencia) VAL
 -- =============================================================
 
 CREATE TABLE materiales (
-  id            INT              NOT NULL AUTO_INCREMENT,
-  tipo          VARCHAR(64)      NOT NULL,
   nombre        VARCHAR(100)     NOT NULL,
   icono         VARCHAR(10)      NOT NULL,
   descripcion   VARCHAR(255)     NOT NULL,
-  tipo_id       TINYINT UNSIGNED NOT NULL,
   hp_recuperado INT              NULL DEFAULT NULL,
+  tipo_id       TINYINT UNSIGNED NOT NULL,
   elemento_id   TINYINT UNSIGNED NULL DEFAULT NULL,
+  tipo          VARCHAR(64)      NOT NULL DEFAULT '',
+  id            INT              NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (id),
+  KEY idx_materiales_tipo (tipo),
   CONSTRAINT fk_material_tipo     FOREIGN KEY (tipo_id)    REFERENCES tipos_material (id),
   CONSTRAINT fk_material_elemento FOREIGN KEY (elemento_id) REFERENCES elementos     (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT INTO materiales (id, nombre, icono, descripcion, tipo_id, hp_recuperado, elemento_id) VALUES
-  ('baya',              'Baya Dulce',          '🍓', 'Una baya silvestre. Restaura 15 HP.',                                      1, 15,   NULL),
-  ('hierba',            'Hierba Medicinal',    '🌿', 'Hierba con propiedades curativas. Restaura 25 HP.',                         1, 25,   NULL),
-  ('nectar',            'Néctar Silvestre',    '🍯', 'Néctar dulce y energizante. Restaura 20 HP.',                              1, 20,   NULL),
-  ('frutaMistica',      'Fruta Mística',       '🍇', 'Fruta de propiedades extraordinarias. Restaura 40 HP.',                    1, 40,   NULL),
-  ('cristal',           'Cristal de Tierra',   '💎', 'Un cristal opaco extraído del suelo.',                                     2, NULL, NULL),
-  ('agua',              'Agua Pura',           '💧', 'Agua cristalina de un manantial cercano.',                                 2, NULL, NULL),
-  ('piedra',            'Piedra Brillante',    '🪨', 'Una piedra con un brillo inusual.',                                        2, NULL, NULL),
-  ('brasaIgnia',        'Brasa Ígnia',         '🔥', 'Una brasa que arde sin consumirse.',                                       3, NULL, 1),
-  ('perlaMarina',       'Perla Marina',        '🫧', 'Perla formada en las profundidades marinas.',                              3, NULL, 2),
-  ('semillaAncestral',  'Semilla Ancestral',   '🌱', 'Semilla que irradia vida en su interior.',                                 3, NULL, 3),
-  ('rocaArcana',        'Roca Arcana',         '🗿', 'Roca imbuida con energía telúrica.',                                      3, NULL, 4),
-  ('chispaEstatica',    'Chispa Estática',     '⚡', 'Chispa atrapada en un cristal eléctrico.',                                3, NULL, 5),
-  ('plumaEterea',       'Pluma Etérea',        '🪶', 'Pluma que flota sin ningún apoyo.',                                       3, NULL, 6),
-  ('sombraCristalizada','Sombra Cristalizada', '🌑', 'Oscuridad solidificada en forma de cristal.',                              3, NULL, 7),
-  ('fragmentoSolar',    'Fragmento Solar',     '☀️', 'Fragmento de luz pura solidificada.',                                     3, NULL, 8),
-  ('chileIgnio',        'Chile Ígneo',         '🌶️','Picante y ardiente. Restaura 55 HP solo a Pokémon de Fuego.',              4, 55,   1),
-  ('bayaMarina',        'Baya Marina',         '🫐', 'Jugosa baya de las costas. Restaura 55 HP solo a Pokémon de Agua.',        4, 55,   2),
-  ('kiwiSilvestre',     'Kiwi Silvestre',      '🥝', 'Fruta de la selva profunda. Restaura 55 HP solo a Pokémon de Planta.',     4, 55,   3),
-  ('raizArcana',        'Raíz Arcana',         '🍠', 'Raíz de la tierra profunda. Restaura 55 HP solo a Pokémon de Tierra.',     4, 55,   4),
-  ('bayaElectra',       'Baya Electra',        '🍋', 'Baya cargada de electricidad. Restaura 55 HP solo a Pokémon Eléctrico.',  4, 55,   5),
-  ('vainaAerea',        'Vaina Aérea',         '🫛', 'Vaina que flota en el viento. Restaura 55 HP solo a Pokémon de Viento.',  4, 55,   6),
-  ('frutoSombrio',      'Fruto Sombrío',       '🫒', 'Fruto que crece sin luz. Restaura 55 HP solo a Pokémon de Oscuro.',        4, 55,   7),
-  ('frutaAurea',        'Fruta Áurea',         '🍊', 'Fruta dorada que desprende luz propia. Restaura 55 HP solo a Pokémon de Luz.', 4, 55, 8);
+INSERT INTO materiales (nombre, icono, descripcion, hp_recuperado, tipo_id, elemento_id, tipo) VALUES
+  ('Baya Dulce',          '🍓', 'Una baya silvestre. Restaura 15 HP.',                                           15,   1, NULL, 'baya'),
+  ('Hierba Medicinal',    '🌿', 'Hierba con propiedades curativas. Restaura 25 HP.',                             25,   1, NULL, 'hierba'),
+  ('Néctar Silvestre',    '🍯', 'Néctar dulce y energizante. Restaura 20 HP.',                                   20,   1, NULL, 'nectar'),
+  ('Fruta Mística',       '🍇', 'Fruta de propiedades extraordinarias. Restaura 40 HP.',                         40,   1, NULL, 'frutaMistica'),
+  ('Cristal de Tierra',   '💎', 'Un cristal opaco extraído del suelo.',                                          NULL, 2, NULL, 'cristal'),
+  ('Agua Pura',           '💧', 'Agua cristalina de un manantial cercano.',                                      NULL, 2, NULL, 'agua'),
+  ('Piedra Brillante',    '🪨', 'Una piedra con un brillo inusual.',                                             NULL, 2, NULL, 'piedra'),
+  ('Brasa Ígnia',         '🔥', 'Una brasa que arde sin consumirse.',                                            NULL, 3, 1,    'brasaIgnia'),
+  ('Perla Marina',        '🫧', 'Perla formada en las profundidades marinas.',                                   NULL, 3, 2,    'perlaMarina'),
+  ('Semilla Ancestral',   '🌱', 'Semilla que irradia vida en su interior.',                                      NULL, 3, 3,    'semillaAncestral'),
+  ('Roca Arcana',         '🗿', 'Roca imbuida con energía telúrica.',                                           NULL, 3, 4,    'rocaArcana'),
+  ('Chispa Estática',     '⚡', 'Chispa atrapada en un cristal eléctrico.',                                     NULL, 3, 5,    'chispaEstatica'),
+  ('Pluma Etérea',        '🪶', 'Pluma que flota sin ningún apoyo.',                                            NULL, 3, 6,    'plumaEterea'),
+  ('Sombra Cristalizada', '🌑', 'Oscuridad solidificada en forma de cristal.',                                   NULL, 3, 7,    'sombraCristalizada'),
+  ('Fragmento Solar',     '☀️', 'Fragmento de luz pura solidificada.',                                          NULL, 3, 8,    'fragmentoSolar'),
+  ('Chile Ígneo',         '🌶️','Picante y ardiente. Restaura 55 HP solo a Pokémon de Fuego.',                  55,   4, 1,    'chileIgnio'),
+  ('Baya Marina',         '🫐', 'Jugosa baya de las costas. Restaura 55 HP solo a Pokémon de Agua.',            55,   4, 2,    'bayaMarina'),
+  ('Kiwi Silvestre',      '🥝', 'Fruta de la selva profunda. Restaura 55 HP solo a Pokémon de Planta.',         55,   4, 3,    'kiwiSilvestre'),
+  ('Raíz Arcana',         '🍠', 'Raíz de la tierra profunda. Restaura 55 HP solo a Pokémon de Tierra.',         55,   4, 4,    'raizArcana'),
+  ('Baya Electra',        '🍋', 'Baya cargada de electricidad. Restaura 55 HP solo a Pokémon Eléctrico.',       55,   4, 5,    'bayaElectra'),
+  ('Vaina Aérea',         '🫛', 'Vaina que flota en el viento. Restaura 55 HP solo a Pokémon de Viento.',       55,   4, 6,    'vainaAerea'),
+  ('Fruto Sombrío',       '🫒', 'Fruto que crece sin luz. Restaura 55 HP solo a Pokémon de Oscuro.',            55,   4, 7,    'frutoSombrio'),
+  ('Fruta Áurea',         '🍊', 'Fruta dorada que desprende luz propia. Restaura 55 HP solo a Pokémon de Luz.', 55,   4, 8,    'frutaAurea');
 
 -- =============================================================
 --  PARTE 4 — PARTIDAS Y DATOS DE JUEGO
@@ -320,7 +321,7 @@ CREATE TABLE pokemon_partida (
   nivel_ascension TINYINT       NOT NULL DEFAULT 0,
   hp_actual       INT           NOT NULL,
   pe              INT           NOT NULL DEFAULT 100,
-  stats           JSON          NOT NULL,
+  stats           LONGTEXT      CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`stats`)),
   en_equipo       TINYINT(1)    NOT NULL DEFAULT 0,
   slot_equipo     TINYINT       NULL DEFAULT NULL,
   PRIMARY KEY (id),
