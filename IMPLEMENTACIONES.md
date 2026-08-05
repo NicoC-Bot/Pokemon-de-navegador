@@ -16,8 +16,62 @@ Resumen técnico de las implementaciones presentes en el proyecto.
   ```
 
 ### Validación de tipos
-- Entradas numéricas casteadas explícitamente con `(int)` antes de usarse en queries.
-- **Ejemplo:** `$id = (int) $_GET['id'];`
+- Centralizada en `api/validar.php` con funciones helper reutilizables.
+- **Archivo:** `api/validar.php` — requerido en `partidas.php`, `batallas.php` y `entrenamientos.php`.
+
+#### Funciones disponibles
+
+**`str_req($d, $campo, $max)`**
+Extrae un string. Aplica `trim()` para eliminar espacios al inicio y al final, luego verifica que no quede vacío y que no supere el largo máximo. Si falla alguna condición, lanza una excepción.
+```php
+str_req($body, 'nombre', 100)
+// $body['nombre'] = "  Ash  "  →  retorna "Ash"
+// $body['nombre'] = ""         →  lanza error
+```
+
+**`int_req($d, $campo)`**
+Extrae un entero obligatorio. Usa `is_numeric()` para verificar que el valor sea un número antes de castearlo. Si el campo no existe o no es numérico, lanza una excepción.
+```php
+int_req($p, 'nivel')
+// $p['nivel'] = 5      →  retorna 5
+// $p['nivel'] = "abc"  →  lanza error
+```
+
+**`int_opt($d, $campo)`**
+Igual que `int_req` pero acepta `null`. Si el campo no existe o su valor es `null`, retorna `null` sin error.
+```php
+int_opt($p, 'slot_equipo')
+// $p['slot_equipo'] = 2     →  retorna 2
+// $p['slot_equipo'] = null  →  retorna null
+// $p['slot_equipo'] = "x"   →  lanza error
+```
+
+**`bool_req($d, $campo)`**
+Extrae un booleano usando `!empty()`. Valores truthy (`true`, `1`) retornan `true`; valores falsy (`false`, `0`, `null`) retornan `false`. No lanza excepciones.
+```php
+bool_req($p, 'en_equipo')
+// $p['en_equipo'] = true   →  retorna true
+// $p['en_equipo'] = false  →  retorna false
+```
+
+**`arr_req($d, $campo)`**
+Verifica que el campo sea un array antes de usarlo en un `foreach`. Si no existe o no es array, lanza excepción.
+```php
+arr_req($body, 'pokemon')
+// $body['pokemon'] = [{...}]  →  retorna el array
+// $body['pokemon'] = null     →  lanza error
+```
+
+**`int_get($param)`**
+Lee directamente de `$_GET`. Usa `ctype_digit()` — solo acepta strings de dígitos puros. Si el parámetro no está en la URL retorna `null`; si está pero no es numérico, lanza excepción.
+```php
+int_get('id')
+// URL: ?id=5    →  retorna 5
+// URL: sin ?id  →  retorna null
+// URL: ?id=abc  →  lanza error
+```
+
+> **Nota:** `ctype_digit` (usado en `int_get`) solo acepta dígitos positivos (`"5"`). `is_numeric` (usado en `int_req`/`int_opt`) también acepta decimales y negativos. Para IDs de URL se usa el más estricto.
 
 ### XSS
 - Vue usa `{{ }}` que escapa HTML automáticamente en todos los templates.
