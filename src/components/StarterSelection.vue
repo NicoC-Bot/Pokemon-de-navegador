@@ -153,184 +153,184 @@ const iniciales = [
 
 <style scoped>
 .starter-selection {
-  max-width: 860px;
-  margin: 48px auto;
-  font-family: sans-serif;
-  padding: 0 16px;
+  max-width: 860px; /* ancho máximo del contenedor de selección */
+  margin: 48px auto; /* centra horizontalmente con margen vertical */
+  font-family: sans-serif; /* fuente sin serif para todo el componente */
+  padding: 0 16px; /* padding lateral para pantallas pequeñas */
 }
 
 /* Card del entrenador */
 .trainer-card {
-  border: 2px solid #ccc;
-  border-radius: 14px;
-  overflow: hidden;
-  margin-bottom: 48px;
+  border: 2px solid #ccc; /* borde gris del card del entrenador */
+  border-radius: 14px; /* esquinas redondeadas del card */
+  overflow: hidden; /* recorta el header dentro del borde redondeado */
+  margin-bottom: 48px; /* espacio bajo el card antes de los iniciales */
 }
 
 .trainer-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 24px;
-  color: white;
+  display: flex; /* alinea icono y nombre en fila */
+  align-items: center; /* centra verticalmente icono y texto */
+  gap: 16px; /* espacio entre icono y datos del entrenador */
+  padding: 16px 24px; /* relleno interno del encabezado */
+  color: white; /* texto blanco sobre el fondo de color de clase */
 }
 
 .trainer-icono {
-  font-size: 2.5rem;
+  font-size: 2.5rem; /* tamaño del emoji del entrenador */
 }
 
 .trainer-header h2 {
-  margin: 0;
-  font-size: 1.6rem;
+  margin: 0; /* elimina el margen por defecto del h2 */
+  font-size: 1.6rem; /* tamaño del nombre del entrenador */
 }
 
 .trainer-clase {
-  font-size: 0.95rem;
-  opacity: 0.9;
+  font-size: 0.95rem; /* tamaño del label de clase del entrenador */
+  opacity: 0.9; /* leve transparencia en el label de clase */
 }
 
 .trainer-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
-  padding: 16px 24px;
+  display: grid; /* rejilla para organizar las filas de stats */
+  grid-template-columns: 1fr 1fr 1fr; /* tres columnas iguales de stats */
+  gap: 6px; /* espacio entre filas de stats */
+  padding: 16px 24px; /* relleno interno de la sección de stats */
 }
 
 .stat-fila {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 8px;
-  background: #f9f9f9;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  display: flex; /* nombre y valor del stat en fila */
+  justify-content: space-between; /* empuja nombre a la izq. y valor a la der. */
+  align-items: center; /* alinea verticalmente nombre y valor */
+  padding: 4px 8px; /* relleno interno de cada fila de stat */
+  background: #f9f9f9; /* fondo gris muy claro de la fila */
+  border-radius: 6px; /* esquinas redondeadas de la fila */
+  font-size: 0.85rem; /* tamaño del texto de stats del entrenador */
 }
 
-.stat-nombre { color: #333; }
-.stat-valor  { font-weight: bold; }
-.positivo    { color: #2dc653; }
-.negativo    { color: #e63946; }
-.neutro      { color: #aaa; }
+.stat-nombre { color: #333; } /* color oscuro del nombre del stat */
+.stat-valor  { font-weight: bold; } /* valor del stat en negrita */
+.positivo    { color: #2dc653; } /* stat positivo en verde */
+.negativo    { color: #e63946; } /* stat negativo en rojo */
+.neutro      { color: #aaa; } /* stat sin modificador en gris */
 
 /* Títulos */
 .titulo-iniciales {
-  font-size: 1.4rem;
-  text-align: center;
-  margin-bottom: 4px;
+  font-size: 1.4rem; /* tamaño del título de selección de pokémon */
+  text-align: center; /* centra el título */
+  margin-bottom: 4px; /* pequeño espacio bajo el título */
 }
 
 .subtitulo-iniciales {
-  text-align: center;
-  color: #777;
-  margin-bottom: 24px;
-  font-size: 0.9rem;
+  text-align: center; /* centra el subtítulo */
+  color: #777; /* color gris del texto del subtítulo */
+  margin-bottom: 24px; /* espacio bajo el subtítulo antes del grid */
+  font-size: 0.9rem; /* tamaño del texto del subtítulo */
 }
 
 /* Grid de iniciales */
 .iniciales-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 20px;
+  display: grid; /* rejilla para las tres tarjetas de pokémon */
+  grid-template-columns: 1fr 1fr 1fr; /* tres columnas iguales para los pokémones */
+  gap: 20px; /* espacio entre tarjetas de pokémon */
 }
 
 .pokemon-card {
-  border: 2px solid #ccc;
-  border-radius: 14px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  border: 2px solid #ccc; /* borde gris del card de pokémon */
+  border-radius: 14px; /* esquinas redondeadas del card */
+  overflow: hidden; /* recorta el header dentro del borde redondeado */
+  display: flex; /* organiza las secciones del card en columna */
+  flex-direction: column; /* apila secciones del card verticalmente */
 }
 
 .pokemon-header {
-  padding: 14px 16px;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  padding: 14px 16px; /* relleno del encabezado del pokémon */
+  color: white; /* texto blanco sobre el fondo de color */
+  display: flex; /* apila nombre y tipo del pokémon */
+  flex-direction: column; /* orienta nombre y tipo verticalmente */
+  gap: 2px; /* mínimo espacio entre nombre y tipo */
 }
 
 .pokemon-nombre {
-  font-size: 1.3rem;
-  font-weight: bold;
+  font-size: 1.3rem; /* tamaño del nombre del pokémon */
+  font-weight: bold; /* nombre del pokémon en negrita */
 }
 
 .pokemon-elemento {
-  font-size: 0.85rem;
-  opacity: 0.9;
+  font-size: 0.85rem; /* tamaño del texto de tipo o elemento */
+  opacity: 0.9; /* leve transparencia en el tipo del pokémon */
 }
 
 .pokemon-desc {
-  font-size: 0.82rem;
-  color: #555;
-  padding: 10px 14px;
-  margin: 0;
+  font-size: 0.82rem; /* tamaño de la descripción del pokémon */
+  color: #555; /* color gris oscuro de la descripción */
+  padding: 10px 14px; /* relleno de la descripción */
+  margin: 0; /* elimina el margen por defecto del párrafo */
 }
 
 .pokemon-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0 14px 10px;
-  flex: 1;
+  display: flex; /* apila las filas de stats en columna */
+  flex-direction: column; /* orienta las filas verticalmente */
+  gap: 4px; /* espacio entre filas de stats del pokémon */
+  padding: 0 14px 10px; /* relleno lateral e inferior de los stats */
+  flex: 1; /* ocupa el espacio restante del card */
 }
 
 .pstat-fila {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.82rem;
-  padding: 3px 6px;
-  background: #f9f9f9;
-  border-radius: 4px;
+  display: flex; /* nombre y valor en fila */
+  justify-content: space-between; /* empuja nombre a izq. y valor a der. */
+  font-size: 0.82rem; /* tamaño del texto de stats del pokémon */
+  padding: 3px 6px; /* relleno interno de la fila de stat */
+  background: #f9f9f9; /* fondo gris muy claro de la fila */
+  border-radius: 4px; /* esquinas redondeadas de la fila */
 }
 
-.pstat-nombre { color: #444; }
-.pstat-valor  { font-weight: bold; color: #222; }
+.pstat-nombre { color: #444; } /* color del nombre de stat del pokémon */
+.pstat-valor  { font-weight: bold; color: #222; } /* valor en negrita y color oscuro */
 
 .btn-elegir {
-  margin: 12px 14px 14px;
-  padding: 10px;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: filter 0.2s, transform 0.1s;
+  margin: 12px 14px 14px; /* margen exterior del botón de selección */
+  padding: 10px; /* relleno interno del botón */
+  color: white; /* texto blanco del botón */
+  border: none; /* sin borde visible en el botón */
+  border-radius: 8px; /* esquinas redondeadas del botón */
+  font-size: 0.9rem; /* tamaño del texto del botón */
+  cursor: pointer; /* cursor de mano al pasar sobre el botón */
+  transition: filter 0.2s, transform 0.1s; /* animación suave al hacer hover */
 }
 
 .btn-elegir:hover {
-  filter: brightness(0.9);
-  transform: scale(1.02);
+  filter: brightness(0.9); /* oscurece levemente el botón al hover */
+  transform: scale(1.02); /* agranda levemente el botón al hover */
 }
 
 .aventura-wrap {
-  text-align: center;
-  margin-top: 40px;
+  text-align: center; /* centra el botón y el mensaje de pista */
+  margin-top: 40px; /* espacio superior del bloque de inicio */
 }
 
 .btn-aventura {
-  padding: 14px 48px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: not-allowed;
-  background-color: #ccc;
-  transition: background-color 0.3s, transform 0.1s, filter 0.2s;
+  padding: 14px 48px; /* relleno generoso del botón principal */
+  font-size: 1.1rem; /* tamaño del texto del botón de aventura */
+  font-weight: bold; /* texto del botón en negrita */
+  color: white; /* texto blanco del botón */
+  border: none; /* sin borde en el botón */
+  border-radius: 12px; /* esquinas muy redondeadas del botón */
+  cursor: not-allowed; /* cursor de prohibido cuando está deshabilitado */
+  background-color: #ccc; /* fondo gris cuando no hay pokémon elegido */
+  transition: background-color 0.3s, transform 0.1s, filter 0.2s; /* transiciones suaves de estado */
 }
 
 .btn-aventura.activo {
-  cursor: pointer;
+  cursor: pointer; /* cursor de mano cuando hay pokémon elegido */
 }
 
 .btn-aventura.activo:hover {
-  filter: brightness(0.9);
-  transform: scale(1.02);
+  filter: brightness(0.9); /* oscurece el botón activo al hacer hover */
+  transform: scale(1.02); /* agranda levemente el botón activo al hover */
 }
 
 .aventura-hint {
-  margin-top: 10px;
-  color: #aaa;
-  font-size: 0.88rem;
+  margin-top: 10px; /* espacio sobre el texto de pista */
+  color: #aaa; /* color gris claro del mensaje de pista */
+  font-size: 0.88rem; /* tamaño pequeño del texto de pista */
 }
 </style>

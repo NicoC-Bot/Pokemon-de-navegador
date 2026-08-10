@@ -1,296 +1,296 @@
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
+  --text: #6b6375; /* color de texto general */
+  --text-h: #08060d; /* color de encabezados y énfasis */
+  --bg: #fff; /* color de fondo de la página */
+  --border: #e5e4e7; /* color de bordes y separadores */
+  --code-bg: #f4f3ec; /* fondo de bloques de código */
+  --accent: #aa3bff; /* color de acento principal */
+  --accent-bg: rgba(170, 59, 255, 0.1); /* fondo semitransparente del acento */
+  --accent-border: rgba(170, 59, 255, 0.5); /* borde semitransparente del acento */
+  --social-bg: rgba(244, 243, 236, 0.5); /* fondo de botones sociales */
   --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px; /* sombra suave para tarjetas */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif; /* tipografía sans-serif del cuerpo */
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif; /* tipografía de encabezados */
+  --mono: ui-monospace, Consolas, monospace; /* tipografía monoespaciada para código */
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font: 18px/145% var(--sans); /* fuente base, tamaño y altura de línea */
+  letter-spacing: 0.18px; /* espaciado entre letras del texto base */
+  color-scheme: light dark; /* soporte de esquema claro y oscuro */
+  color: var(--text); /* color de texto predeterminado */
+  background: var(--bg); /* color de fondo de la raíz */
+  font-synthesis: none; /* desactiva síntesis automática de fuentes */
+  text-rendering: optimizeLegibility; /* optimiza legibilidad tipográfica */
+  -webkit-font-smoothing: antialiased; /* suavizado de fuentes en WebKit */
+  -moz-osx-font-smoothing: grayscale; /* suavizado de fuentes en Firefox macOS */
 
   @media (max-width: 1024px) {
-    font-size: 16px;
+    font-size: 16px; /* reduce tamaño de fuente en pantallas medianas */
   }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
+    --text: #9ca3af; /* color de texto en modo oscuro */
+    --text-h: #f3f4f6; /* color de encabezados en modo oscuro */
+    --bg: #16171d; /* fondo oscuro de la página */
+    --border: #2e303a; /* color de bordes en modo oscuro */
+    --code-bg: #1f2028; /* fondo de código en modo oscuro */
+    --accent: #c084fc; /* color de acento en modo oscuro */
+    --accent-bg: rgba(192, 132, 252, 0.15); /* fondo de acento en modo oscuro */
+    --accent-border: rgba(192, 132, 252, 0.5); /* borde de acento en modo oscuro */
+    --social-bg: rgba(47, 48, 58, 0.5); /* fondo de botones sociales en oscuro */
     --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px; /* sombra intensa para fondo oscuro */
   }
 
   #social .button-icon {
-    filter: invert(1) brightness(2);
+    filter: invert(1) brightness(2); /* invierte e ilumina iconos en modo oscuro */
   }
 }
 
 body {
-  margin: 0;
+  margin: 0; /* elimina margen exterior del cuerpo */
 }
 
 h1,
 h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+  font-family: var(--heading); /* fuente de encabezados H1 y H2 */
+  font-weight: 500; /* grosor medio para encabezados */
+  color: var(--text-h); /* color oscuro de los encabezados */
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
+  font-size: 56px; /* tamaño grande del encabezado principal */
+  letter-spacing: -1.68px; /* comprime el espaciado del H1 */
+  margin: 32px 0; /* margen vertical del encabezado principal */
   @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+    font-size: 36px; /* tamaño reducido del H1 en móvil */
+    margin: 20px 0; /* margen reducido del H1 en móvil */
   }
 }
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
+  font-size: 24px; /* tamaño del encabezado secundario */
+  line-height: 118%; /* altura de línea compacta en H2 */
+  letter-spacing: -0.24px; /* ligera compresión tipográfica en H2 */
+  margin: 0 0 8px; /* margen inferior del encabezado secundario */
   @media (max-width: 1024px) {
-    font-size: 20px;
+    font-size: 20px; /* tamaño reducido del H2 en móvil */
   }
 }
 p {
-  margin: 0;
+  margin: 0; /* elimina margen de los párrafos */
 }
 
 code,
 .counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  font-family: var(--mono); /* fuente monoespaciada para código y contador */
+  display: inline-flex; /* disposición en línea flexible */
+  border-radius: 4px; /* bordes redondeados leves */
+  color: var(--text-h); /* color oscuro del texto */
 }
 
 code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  font-size: 15px; /* tamaño de fuente en bloques de código */
+  line-height: 135%; /* altura de línea en bloques de código */
+  padding: 4px 8px; /* relleno interior del bloque de código */
+  background: var(--code-bg); /* fondo del bloque de código */
 }
 
 .counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+  font-size: 16px; /* tamaño de fuente del elemento contador */
+  padding: 5px 10px; /* relleno interior del contador */
+  border-radius: 5px; /* bordes redondeados del contador */
+  color: var(--accent); /* color de acento en el texto del contador */
+  background: var(--accent-bg); /* fondo de acento del contador */
+  border: 2px solid transparent; /* borde invisible para transición hover */
+  transition: border-color 0.3s; /* transición suave del borde al pasar cursor */
+  margin-bottom: 24px; /* separación inferior del contador */
 
   &:hover {
-    border-color: var(--accent-border);
+    border-color: var(--accent-border); /* muestra borde de acento al pasar cursor */
   }
   &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+    outline: 2px solid var(--accent); /* contorno de foco accesible */
+    outline-offset: 2px; /* separación del contorno respecto al elemento */
   }
 }
 
 .hero {
-  position: relative;
+  position: relative; /* posición relativa para hijos absolutos */
 
   .base,
   .framework,
   .vite {
-    inset-inline: 0;
-    margin: 0 auto;
+    inset-inline: 0; /* alinea horizontalmente al centro */
+    margin: 0 auto; /* centra el elemento con margen automático */
   }
 
   .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
+    width: 170px; /* ancho fijo de la imagen base del héroe */
+    position: relative; /* posición relativa para control de z-index */
+    z-index: 0; /* capa base debajo de los demás elementos */
   }
 
   .framework,
   .vite {
-    position: absolute;
+    position: absolute; /* posición absoluta relativa al héroe */
   }
 
   .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
+    z-index: 1; /* capa superior al elemento base */
+    top: 34px; /* desplazamiento vertical del logo del framework */
+    height: 28px; /* altura del logo del framework */
     transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
+      scale(1.4); /* transformación 3D del logo del framework */
   }
 
   .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
+    z-index: 0; /* capa base del logo de Vite */
+    top: 107px; /* desplazamiento vertical del logo de Vite */
+    height: 26px; /* altura del logo de Vite */
+    width: auto; /* ancho automático según proporción */
     transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
+      scale(0.8); /* transformación 3D del logo de Vite */
   }
 }
 
 #app {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  width: 1126px; /* ancho fijo del contenedor principal */
+  max-width: 100%; /* ancho máximo responsivo */
+  margin: 0 auto; /* centra el contenedor principal */
+  text-align: center; /* alinea el texto al centro */
+  border-inline: 1px solid var(--border); /* bordes laterales del contenedor */
+  min-height: 100svh; /* altura mínima de toda la ventana */
+  display: flex; /* disposición flexible del contenedor */
+  flex-direction: column; /* distribución vertical de hijos */
+  box-sizing: border-box; /* incluye bordes en el cálculo del ancho */
 }
 
 #center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
+  display: flex; /* disposición flexible del área central */
+  flex-direction: column; /* apila elementos centrales verticalmente */
+  gap: 25px; /* separación entre elementos del área central */
+  place-content: center; /* centra el contenido en ambos ejes */
+  place-items: center; /* centra los ítems en ambos ejes */
+  flex-grow: 1; /* ocupa el espacio restante disponible */
 
   @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
+    padding: 32px 20px 24px; /* relleno del área central en móvil */
+    gap: 18px; /* separación reducida en pantallas medianas */
   }
 }
 
 #next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
+  display: flex; /* disposición flexible de los pasos siguientes */
+  border-top: 1px solid var(--border); /* línea superior separadora */
+  text-align: left; /* alinea el texto de los pasos a la izquierda */
 
   & > div {
-    flex: 1 1 0;
-    padding: 32px;
+    flex: 1 1 0; /* cada hijo crece y se encoge equitativamente */
+    padding: 32px; /* relleno interior de cada sección de pasos */
     @media (max-width: 1024px) {
-      padding: 24px 20px;
+      padding: 24px 20px; /* relleno reducido de sección en móvil */
     }
   }
 
   .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
+    margin-bottom: 16px; /* separación inferior del icono de sección */
+    width: 22px; /* ancho del icono de sección */
+    height: 22px; /* alto del icono de sección */
   }
 
   @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: column; /* apila secciones verticalmente en móvil */
+    text-align: center; /* centra el texto en disposición móvil */
   }
 }
 
 #docs {
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border); /* borde derecho separador de documentación */
 
   @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    border-right: none; /* elimina borde derecho en móvil */
+    border-bottom: 1px solid var(--border); /* borde inferior en disposición móvil */
   }
 }
 
 #next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
+  list-style: none; /* elimina viñetas de la lista */
+  padding: 0; /* elimina relleno de la lista */
+  display: flex; /* disposición flexible de los botones */
+  gap: 8px; /* separación entre botones de la lista */
+  margin: 32px 0 0; /* margen superior de la lista de botones */
 
   .logo {
-    height: 18px;
+    height: 18px; /* alto del logo dentro de los botones */
   }
 
   a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
+    color: var(--text-h); /* color del texto de los botones de enlace */
+    font-size: 16px; /* tamaño de fuente de los botones */
+    border-radius: 6px; /* bordes redondeados de los botones */
+    background: var(--social-bg); /* fondo de los botones sociales */
+    display: flex; /* disposición flexible dentro del botón */
+    padding: 6px 12px; /* relleno interior de los botones */
+    align-items: center; /* alinea verticalmente el contenido del botón */
+    gap: 8px; /* separación entre icono y texto del botón */
+    text-decoration: none; /* elimina subrayado de los enlaces */
+    transition: box-shadow 0.3s; /* transición suave de sombra al pasar cursor */
 
     &:hover {
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow); /* sombra al pasar el cursor sobre el botón */
     }
     .button-icon {
-      height: 18px;
-      width: 18px;
+      height: 18px; /* alto del icono dentro del botón */
+      width: 18px; /* ancho del icono dentro del botón */
     }
   }
 
   @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
+    margin-top: 20px; /* margen superior reducido en móvil */
+    flex-wrap: wrap; /* permite que los botones pasen a varias filas */
+    justify-content: center; /* centra los botones en móvil */
 
     li {
-      flex: 1 1 calc(50% - 8px);
+      flex: 1 1 calc(50% - 8px); /* dos botones por fila en móvil */
     }
 
     a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
+      width: 100%; /* botones ocupan todo el ancho disponible */
+      justify-content: center; /* centra el contenido del botón en móvil */
+      box-sizing: border-box; /* incluye relleno en el cálculo del ancho */
     }
   }
 }
 
 #spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
+  height: 88px; /* altura del espaciador inferior */
+  border-top: 1px solid var(--border); /* línea superior del espaciador */
   @media (max-width: 1024px) {
-    height: 48px;
+    height: 48px; /* altura reducida del espaciador en móvil */
   }
 }
 
 .ticks {
-  position: relative;
-  width: 100%;
+  position: relative; /* posición relativa para pseudo-elementos */
+  width: 100%; /* ancho completo del contenedor de marcas */
 
   &::before,
   &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
+    content: ''; /* contenido vacío para pseudo-elementos decorativos */
+    position: absolute; /* posición absoluta de las marcas */
+    top: -4.5px; /* desplazamiento vertical de las marcas en bordes */
+    border: 5px solid transparent; /* triángulo con borde transparente base */
   }
 
   &::before {
-    left: 0;
-    border-left-color: var(--border);
+    left: 0; /* posición izquierda de la marca decorativa */
+    border-left-color: var(--border); /* color de la marca izquierda */
   }
   &::after {
-    right: 0;
-    border-right-color: var(--border);
+    right: 0; /* posición derecha de la marca decorativa */
+    border-right-color: var(--border); /* color de la marca derecha */
   }
 }

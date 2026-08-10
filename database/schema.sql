@@ -20,6 +20,7 @@ USE practica2;
 -- =============================================================
 
 DROP VIEW  IF EXISTS vista_entrenadores_pokemon;
+DROP TABLE IF EXISTS entrenamiento_log;
 DROP TABLE IF EXISTS entrenamiento_stats;
 DROP TABLE IF EXISTS entrenamiento_sesiones;
 DROP TABLE IF EXISTS batalla_turnos;
@@ -486,6 +487,16 @@ CREATE TABLE batallas_log (
 -- =============================================================
 --  PARTE 9 — ENTRENAMIENTOS
 -- =============================================================
+
+CREATE TABLE entrenamiento_log (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  partida_id  INT UNSIGNED NOT NULL,
+  pokemon_uid VARCHAR(50)  NOT NULL,
+  fecha       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- -------------------------------------------------------------
 
 CREATE TABLE entrenamiento_stats (
   id                 INT UNSIGNED     NOT NULL AUTO_INCREMENT,

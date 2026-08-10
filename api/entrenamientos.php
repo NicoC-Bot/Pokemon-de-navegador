@@ -46,13 +46,18 @@ if ($metodo === 'POST') {
              VALUES (?, ?, ?, ?, ?)'
         );
 
+        $stmtLog = $pdo->prepare(
+            'INSERT INTO entrenamiento_log (partida_id, pokemon_uid) VALUES (?, ?)'
+        );
+
         foreach ($sesiones as $s) {
-            $pokemonId = $catPokemon[$s['pokemon_nombre']] ?? null;
+            $pokemonId  = $catPokemon[$s['pokemon_nombre']] ?? null;
             if ($pokemonId === null) throw new Exception("Pokemon desconocido: {$s['pokemon_nombre']}");
+            $pokemonUid = str_req($s, 'pokemon_uid', 50);
 
             $stmtS->execute([
                 $partidaId,
-                str_req($s, 'pokemon_uid', 50),
+                $pokemonUid,
                 $pokemonId,
                 int_req($s, 'pe_inicial'),
                 int_req($s, 'pe_gastado'),
@@ -76,6 +81,8 @@ if ($metodo === 'POST') {
                     int_req($stat, 'valor_despues'),
                 ]);
             }
+
+            $stmtLog->execute([$partidaId, $pokemonUid]);
         }
 
         $pdo->commit();

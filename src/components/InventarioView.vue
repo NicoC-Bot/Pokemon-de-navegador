@@ -60,116 +60,116 @@ const porcentaje = computed(() => Math.min(100, (total.value / INVENTARIO_MAX) *
 
 <style scoped>
 .inventario-view {
-  padding: 28px 32px;
-  font-family: sans-serif;
-  max-width: 520px;
+  padding: 28px 32px; /* espacio interno del panel de inventario */
+  font-family: sans-serif; /* tipografía base sin serifas */
+  max-width: 520px; /* ancho máximo de la vista del inventario */
 }
 
 h2 {
-  font-size: 1.4rem;
-  margin-bottom: 4px;
+  font-size: 1.4rem; /* título de la sección inventario */
+  margin-bottom: 4px; /* separación mínima al subtítulo */
 }
 
 .subtitulo {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 20px;
+  color: #666; /* texto descriptivo en gris */
+  font-size: 0.9rem; /* subtítulo ligeramente reducido */
+  margin-bottom: 20px; /* separación al bloque de capacidad */
 }
 
 .capacidad {
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* separación entre capacidad y la lista */
 }
 
 .capacidad-texto {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #555;
-  margin-bottom: 6px;
+  display: flex; /* coloca etiqueta y número en la misma fila */
+  justify-content: space-between; /* etiqueta a la izquierda, número a la derecha */
+  font-size: 0.85rem; /* texto pequeño del indicador de capacidad */
+  color: #555; /* color gris oscuro del texto de capacidad */
+  margin-bottom: 6px; /* separación entre texto y barra */
 }
 
 .capacidad-texto .lleno {
-  color: #e63946;
-  font-weight: bold;
+  color: #e63946; /* alerta roja cuando el inventario está lleno */
+  font-weight: bold; /* número en negrita cuando está lleno */
 }
 
 .barra-fondo {
-  height: 8px;
-  background: #eee;
-  border-radius: 4px;
-  overflow: hidden;
+  height: 8px; /* altura del contenedor de la barra de capacidad */
+  background: #eee; /* fondo gris claro de la barra vacía */
+  border-radius: 4px; /* esquinas redondeadas de la barra */
+  overflow: hidden; /* recorta el relleno a los bordes redondeados */
 }
 
 .barra-relleno {
-  height: 100%;
-  background: #2d8c4e;
-  border-radius: 4px;
-  transition: width 0.3s;
+  height: 100%; /* relleno ocupa toda la altura de la barra */
+  background: #2d8c4e; /* color verde del relleno de capacidad */
+  border-radius: 4px; /* esquinas redondeadas del relleno */
+  transition: width 0.3s; /* animación al cambiar la cantidad del inventario */
 }
 
-.barra-relleno.llena { background: #e63946; }
+.barra-relleno.llena { background: #e63946; } /* relleno rojo cuando el inventario está lleno */
 
 .vacio {
-  color: #aaa;
-  font-size: 0.88rem;
-  text-align: center;
-  padding: 32px 0;
+  color: #aaa; /* texto gris cuando no hay materiales */
+  font-size: 0.88rem; /* mensaje de inventario vacío en tamaño pequeño */
+  text-align: center; /* mensaje centrado en la vista */
+  padding: 32px 0; /* espacio vertical para el mensaje de vacío */
 }
 
 .materiales-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
+  display: flex; /* apila las filas de materiales verticalmente */
+  flex-direction: column; /* organiza los materiales en columna */
+  gap: 8px; /* separación entre filas de materiales */
+  margin-bottom: 24px; /* separación al pie de la lista */
 }
 
 .mat-fila {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
-  transition: border-color 0.2s;
+  display: flex; /* alinea ícono, info y cantidad en fila */
+  align-items: center; /* centrado vertical de los elementos */
+  gap: 14px; /* separación entre ícono, nombre y cantidad */
+  padding: 12px 16px; /* espacio interno de cada fila de material */
+  border: 2px solid #e0e0e0; /* borde por defecto de la fila */
+  border-radius: 10px; /* esquinas redondeadas de la fila */
+  transition: border-color 0.2s; /* animación al activar el material */
 }
 
-.mat-fila:not(.inactivo) { border-color: #b0d4be; }
+.mat-fila:not(.inactivo) { border-color: #b0d4be; } /* borde verde claro cuando hay cantidad */
 
-.mat-fila.inactivo { opacity: 0.45; }
+.mat-fila.inactivo { opacity: 0.45; } /* fila semitransparente cuando la cantidad es cero */
 
-.mat-icono { font-size: 1.8rem; flex-shrink: 0; }
+.mat-icono { font-size: 1.8rem; /* emoji del material en tamaño grande */ flex-shrink: 0; /* el ícono no se comprime al ajustar el ancho */ }
 
 .mat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
+  display: flex; /* apila nombre y descripción verticalmente */
+  flex-direction: column; /* organiza nombre y descripción en columna */
+  gap: 2px; /* separación mínima entre nombre y descripción */
+  flex: 1; /* bloque de info ocupa espacio restante de la fila */
+  min-width: 0; /* permite que el texto se trunque correctamente */
 }
 
-.mat-nombre { font-weight: bold; font-size: 0.95rem; color: #fff; }
-.mat-desc   { font-size: 0.8rem; color: #666; }
+.mat-nombre { font-weight: bold; /* nombre del material en negrita */ font-size: 0.95rem; /* nombre del material en tamaño casi normal */ color: #fff; /* nombre del material en blanco */ }
+.mat-desc   { font-size: 0.8rem; /* descripción del material más pequeña */ color: #666; /* descripción en gris */ }
 
 .mat-cantidad {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #fff;
-  min-width: 32px;
-  text-align: right;
+  font-size: 1.2rem; /* cantidad del material en tamaño grande */
+  font-weight: bold; /* cantidad en negrita */
+  color: #fff; /* cantidad en blanco */
+  min-width: 32px; /* ancho mínimo para alinear números */
+  text-align: right; /* cantidad alineada a la derecha */
 }
 
 .btn-volver {
-  display: block;
-  margin: 0 auto 20px;
-  padding: 8px 18px;
-  background: white;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.88rem;
-  color: #555;
-  transition: border-color 0.2s, color 0.2s;
+  display: block; /* permite usar margin auto para centrar el botón */
+  margin: 0 auto 20px; /* centrado horizontal con separación abajo */
+  padding: 8px 18px; /* espacio interno del botón de volver */
+  background: white; /* fondo blanco del botón */
+  border: 2px solid #ccc; /* borde gris del botón de volver */
+  border-radius: 8px; /* esquinas redondeadas del botón */
+  cursor: pointer; /* muestra mano al pasar sobre el botón */
+  font-size: 0.88rem; /* texto ligeramente reducido */
+  color: #555; /* texto gris oscuro del botón */
+  transition: border-color 0.2s, color 0.2s; /* animación de hover suave */
 }
 
-.btn-volver:hover { border-color: #888; color: #222; }
+.btn-volver:hover { border-color: #888; /* borde más oscuro al hover */ color: #222; /* texto más oscuro al hover */ }
 </style>

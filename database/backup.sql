@@ -292,6 +292,31 @@ INSERT INTO `entrenadores` VALUES (1,'Ash'),(2,'Brock'),(3,'Clemont'),(4,'Dawn')
 UNLOCK TABLES;
 
 --
+-- Table structure for table `entrenamiento_log`
+--
+
+DROP TABLE IF EXISTS `entrenamiento_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `entrenamiento_log` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `partida_id` int(10) unsigned NOT NULL,
+  `pokemon_uid` varchar(50) NOT NULL,
+  `fecha` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `entrenamiento_log`
+--
+
+LOCK TABLES `entrenamiento_log` WRITE;
+/*!40000 ALTER TABLE `entrenamiento_log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `entrenamiento_log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `entrenamiento_sesiones`
 --
 
@@ -896,4 +921,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-05 15:21:32
+-- Dump completed on 2026-08-07 12:11:34

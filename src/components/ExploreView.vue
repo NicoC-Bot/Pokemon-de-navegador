@@ -211,257 +211,257 @@ function formatearTiempo(ms) {
 
 <style scoped>
 .explore-view {
-  padding: 20px 28px;
-  font-family: sans-serif;
-  max-width: 480px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  padding: 20px 28px; /* relleno interno del contenedor principal */
+  font-family: sans-serif; /* fuente genérica del componente */
+  max-width: 480px; /* ancho máximo de la vista de exploración */
+  display: flex; /* organiza las secciones en columna */
+  flex-direction: column; /* dirección vertical del layout */
+  gap: 0; /* sin separación automática entre secciones */
 }
 
 /* Header */
 .header {
-  margin-bottom: 14px;
+  margin-bottom: 14px; /* separación inferior del encabezado */
 }
 
 h2 {
-  font-size: 1.4rem;
-  margin-bottom: 2px;
+  font-size: 1.4rem; /* tamaño del título Explorar */
+  margin-bottom: 2px; /* separación mínima entre título y subtítulo */
 }
 
 .subtitulo {
-  color: #666;
-  font-size: 0.88rem;
-  margin-bottom: 8px;
+  color: #666; /* gris para el texto descriptivo del encabezado */
+  font-size: 0.88rem; /* texto pequeño del subtítulo */
+  margin-bottom: 8px; /* separación inferior antes de la info de capturas */
 }
 
 .capturas-info {
-  font-size: 0.82rem;
-  color: #555;
+  font-size: 0.82rem; /* texto pequeño del indicador de capturas */
+  color: #555; /* gris medio para el contador de capturas */
 }
 
 .capturas-disponibles {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  display: flex; /* alinea el texto y las bolitas en fila */
+  align-items: center; /* centra verticalmente el texto y los iconos */
+  gap: 6px; /* separación entre el texto y las bolitas */
 }
 
 .bolita {
-  font-size: 1rem;
-  color: #2dc653;
-  transition: color 0.2s;
+  font-size: 1rem; /* tamaño del símbolo de bola de captura */
+  color: #2dc653; /* verde para captura disponible */
+  transition: color 0.2s; /* transición suave al cambiar a estado usado */
 }
 
-.bolita.usada { color: #ddd; }
+.bolita.usada { color: #ddd; } /* gris para bola de captura ya usada */
 
 .capturas-agotadas {
-  color: #e63946;
+  color: #e63946; /* rojo para el aviso de capturas agotadas */
 }
 
 /* Zona resultado - altura fija */
 .zona-resultado {
-  min-height: 220px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
+  min-height: 220px; /* altura mínima para evitar saltos de layout */
+  display: flex; /* centra el contenido del resultado */
+  align-items: center; /* centra verticalmente el resultado */
+  justify-content: center; /* centra horizontalmente el resultado */
+  margin-bottom: 14px; /* separación inferior antes de los botones */
 }
 
 .zona-resultado > * {
-  width: 100%;
+  width: 100%; /* hijo ocupa todo el ancho de la zona */
 }
 
 /* Estado inicial */
 .estado-inicial {
-  text-align: center;
-  color: #aaa;
+  text-align: center; /* centra el icono y el texto de bienvenida */
+  color: #aaa; /* gris claro para el estado vacío inicial */
 }
 
 .zona-icono {
-  font-size: 2.4rem;
-  display: block;
-  margin-bottom: 8px;
+  font-size: 2.4rem; /* tamaño grande del icono del entorno */
+  display: block; /* bloque para aplicar margen inferior */
+  margin-bottom: 8px; /* separación entre icono y texto descriptivo */
 }
 
 /* Encuentro */
 .encuentro-titulo {
-  font-size: 0.9rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #333;
+  font-size: 0.9rem; /* tamaño del mensaje de encuentro */
+  font-weight: bold; /* negrita para el anuncio del encuentro */
+  margin-bottom: 8px; /* separación inferior antes de la tarjeta */
+  color: #333; /* color oscuro del título de encuentro */
 }
 
 /* Card Pokémon */
 .pokemon-card {
-  border: 2px solid #ccc;
-  border-radius: 14px;
-  overflow: hidden;
+  border: 2px solid #ccc; /* borde de color dinámico según el elemento */
+  border-radius: 14px; /* esquinas redondeadas de la tarjeta */
+  overflow: hidden; /* recorta el header coloreado a los bordes */
 }
 
 .pokemon-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  color: white;
+  display: flex; /* alinea info y rareza en fila */
+  justify-content: space-between; /* info a la izquierda, rareza a la derecha */
+  align-items: center; /* centra verticalmente los elementos */
+  padding: 14px 16px; /* relleno del encabezado coloreado */
+  color: white; /* texto blanco sobre fondo de color del elemento */
 }
 
 .pokemon-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: flex; /* apila nombre y elemento en columna */
+  flex-direction: column; /* dirección vertical de la información */
+  gap: 2px; /* separación mínima entre nombre y tipo de elemento */
 }
 
-.pokemon-nombre { font-size: 1.2rem; font-weight: bold; }
-.pokemon-elemento { font-size: 0.82rem; opacity: 0.9; }
+.pokemon-nombre { font-size: 1.2rem; font-weight: bold; } /* nombre grande en negrita */
+.pokemon-elemento { font-size: 0.82rem; opacity: 0.9; } /* tipo de elemento semitransparente */
 
 .rareza-badge {
-  font-size: 0.72rem;
-  font-weight: bold;
-  padding: 4px 10px;
-  border-radius: 20px;
-  color: white;
-  white-space: nowrap;
+  font-size: 0.72rem; /* texto muy pequeño de la etiqueta de rareza */
+  font-weight: bold; /* negrita para la etiqueta de rareza */
+  padding: 4px 10px; /* relleno interno del badge */
+  border-radius: 20px; /* forma de pastilla del badge */
+  color: white; /* texto blanco sobre color de rareza */
+  white-space: nowrap; /* evita que el texto del badge salte de línea */
 }
 
 .pokemon-desc {
-  font-size: 0.82rem;
-  color: #555;
-  padding: 10px 14px;
-  margin: 0;
+  font-size: 0.82rem; /* texto pequeño de la descripción del Pokémon */
+  color: #555; /* gris para el texto descriptivo */
+  padding: 10px 14px; /* relleno lateral de la descripción */
+  margin: 0; /* elimina margen por defecto del párrafo */
 }
 
 .pokemon-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0 14px 14px;
+  display: flex; /* apila las filas de estadísticas */
+  flex-direction: column; /* dirección vertical de las stats */
+  gap: 4px; /* separación entre filas de estadística */
+  padding: 0 14px 14px; /* relleno lateral e inferior de las stats */
 }
 
 .stat-fila {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.82rem;
-  padding: 3px 6px;
-  background: #f9f9f9;
-  border-radius: 4px;
+  display: flex; /* alinea nombre y valor del stat en fila */
+  justify-content: space-between; /* nombre a la izquierda, valor a la derecha */
+  font-size: 0.82rem; /* texto pequeño de las estadísticas */
+  padding: 3px 6px; /* relleno interno de cada fila de stat */
+  background: #f9f9f9; /* fondo muy claro de cada fila de stat */
+  border-radius: 4px; /* esquinas ligeramente redondeadas */
 }
 
-.stat-nombre { color: #444; }
-.stat-valor  { font-weight: bold; color: #222; }
+.stat-nombre { color: #444; } /* color gris oscuro del nombre del stat */
+.stat-valor  { font-weight: bold; color: #222; } /* valor en negrita con color oscuro */
 
-.captura-accion { padding: 10px 14px 14px; }
+.captura-accion { padding: 10px 14px 14px; } /* relleno del área del botón capturar */
 
 .btn-capturar {
-  width: 100%;
-  padding: 10px;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-  background: #ccc;
-  transition: filter 0.2s;
+  width: 100%; /* botón ocupa todo el ancho disponible */
+  padding: 10px; /* relleno interno del botón */
+  color: white; /* texto blanco del botón */
+  border: none; /* sin borde visible */
+  border-radius: 8px; /* esquinas redondeadas del botón */
+  font-size: 0.9rem; /* tamaño del texto del botón */
+  font-weight: bold; /* negrita para enfatizar la acción */
+  cursor: pointer; /* cursor de mano al interactuar */
+  background: #ccc; /* fondo gris por defecto sin color de elemento */
+  transition: filter 0.2s; /* transición suave de brillo al hover */
 }
 
-.btn-capturar:not(:disabled):hover { filter: brightness(0.9); }
-.btn-capturar:disabled { cursor: not-allowed; opacity: 0.5; }
+.btn-capturar:not(:disabled):hover { filter: brightness(0.9); } /* oscurece al hover si está activo */
+.btn-capturar:disabled { cursor: not-allowed; opacity: 0.5; } /* semi-opaco sin capturas disponibles */
 
 .capturado-aviso {
-  text-align: center;
-  padding: 10px;
-  background: #edfff3;
-  border: 2px solid #2dc653;
-  border-radius: 8px;
-  color: #1a9e3f;
-  font-weight: bold;
-  font-size: 0.9rem;
+  text-align: center; /* centra el mensaje de captura exitosa */
+  padding: 10px; /* relleno del aviso de éxito */
+  background: #edfff3; /* fondo verde claro de confirmación */
+  border: 2px solid #2dc653; /* borde verde del aviso de captura */
+  border-radius: 8px; /* esquinas redondeadas del aviso */
+  color: #1a9e3f; /* texto verde oscuro del mensaje */
+  font-weight: bold; /* negrita del texto confirmatorio */
+  font-size: 0.9rem; /* tamaño del texto del aviso */
 }
 
 /* Material */
 .material-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 14px;
+  display: flex; /* alinea icono e información en fila */
+  align-items: center; /* centra verticalmente icono e info */
+  gap: 14px; /* separación entre el icono y la descripción */
+  padding: 16px 20px; /* relleno interno de la tarjeta de material */
+  border: 2px solid #e0e0e0; /* borde gris de la tarjeta */
+  border-radius: 14px; /* esquinas redondeadas de la tarjeta */
 }
 
-.material-icono { font-size: 2rem; flex-shrink: 0; }
+.material-icono { font-size: 2rem; flex-shrink: 0; } /* icono grande sin reducirse */
 
-.material-info { display: flex; flex-direction: column; gap: 4px; }
-.material-nombre { font-weight: bold; font-size: 1rem; color: #222; }
-.material-desc { font-size: 0.85rem; color: #666; }
+.material-info { display: flex; flex-direction: column; gap: 4px; } /* info apilada en columna */
+.material-nombre { font-weight: bold; font-size: 1rem; color: #222; } /* nombre en negrita y oscuro */
+.material-desc { font-size: 0.85rem; color: #666; } /* descripción pequeña y gris */
 
-.recoger-accion { margin-top: 10px; }
+.recoger-accion { margin-top: 10px; } /* separación superior del botón recoger */
 
 .btn-recoger {
-  width: 100%;
-  padding: 10px;
-  background: #2d8c4e;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: filter 0.2s;
+  width: 100%; /* botón ocupa todo el ancho disponible */
+  padding: 10px; /* relleno interno del botón */
+  background: #2d8c4e; /* verde para acción de recoger material */
+  color: white; /* texto blanco del botón */
+  border: none; /* sin borde visible */
+  border-radius: 8px; /* esquinas redondeadas del botón */
+  font-size: 0.9rem; /* tamaño del texto del botón */
+  font-weight: bold; /* negrita para enfatizar la acción */
+  cursor: pointer; /* cursor de mano al interactuar */
+  transition: filter 0.2s; /* transición suave de brillo al hover */
 }
 
-.btn-recoger:hover { filter: brightness(0.9); }
+.btn-recoger:hover { filter: brightness(0.9); } /* oscurece ligeramente al pasar el cursor */
 
 .recogido-aviso {
-  text-align: center;
-  padding: 10px;
-  background: #edfff3;
-  border: 2px solid #2dc653;
-  border-radius: 8px;
-  color: #1a9e3f;
-  font-weight: bold;
-  font-size: 0.9rem;
+  text-align: center; /* centra el mensaje de material recogido */
+  padding: 10px; /* relleno del aviso de recogida exitosa */
+  background: #edfff3; /* fondo verde claro de éxito */
+  border: 2px solid #2dc653; /* borde verde del aviso de recogida */
+  border-radius: 8px; /* esquinas redondeadas del aviso */
+  color: #1a9e3f; /* texto verde oscuro del mensaje */
+  font-weight: bold; /* negrita del texto confirmatorio */
+  font-size: 0.9rem; /* tamaño del texto del aviso */
 }
 
 /* Botones fijos */
 .botones {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: flex; /* apila los botones en columna */
+  flex-direction: column; /* dirección vertical del grupo de botones */
+  gap: 8px; /* separación entre botones del grupo */
 }
 
 .btn-explorar {
-  padding: 10px;
-  background: #222;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.2s;
+  padding: 10px; /* relleno interno del botón explorar */
+  background: #222; /* fondo oscuro del botón principal */
+  color: white; /* texto blanco del botón */
+  border: none; /* sin borde visible */
+  border-radius: 10px; /* esquinas muy redondeadas del botón */
+  font-size: 0.9rem; /* tamaño del texto del botón */
+  font-weight: bold; /* negrita del botón de acción principal */
+  cursor: pointer; /* cursor de mano al interactuar */
+  transition: background 0.2s; /* animación del fondo al hover */
 }
 
-.btn-explorar:hover { background: #444; }
+.btn-explorar:hover { background: #444; } /* fondo más claro al pasar el cursor */
 
 .btn-volver {
-  display: block;
-  margin: 0 auto 20px;
-  padding: 8px 18px;
-  background: white;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.88rem;
-  color: #555;
-  transition: border-color 0.2s, color 0.2s;
+  display: block; /* bloque para centrar con margen automático */
+  margin: 0 auto 20px; /* centra y añade separación inferior */
+  padding: 8px 18px; /* relleno interno del botón */
+  background: white; /* fondo blanco del botón volver */
+  border: 2px solid #ccc; /* borde gris claro */
+  border-radius: 8px; /* esquinas redondeadas */
+  cursor: pointer; /* cursor de mano al interactuar */
+  font-size: 0.88rem; /* tamaño del texto ligeramente reducido */
+  color: #555; /* color gris del texto */
+  transition: border-color 0.2s, color 0.2s; /* animación suave de borde y color */
 }
 
-.btn-volver:hover { border-color: #888; color: #222; }
+.btn-volver:hover { border-color: #888; color: #222; } /* oscurece borde y texto al hover */
 
 /* Transición */
 .fade-enter-active,
-.fade-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.fade-leave-active { transition: opacity 0.2s, transform 0.2s; } /* duración de la transición de entrada/salida */
 .fade-enter-from,
-.fade-leave-to { opacity: 0; transform: translateY(6px); }
+.fade-leave-to { opacity: 0; transform: translateY(6px); } /* estado inicial y final del fade */
 </style>

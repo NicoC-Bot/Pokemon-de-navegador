@@ -126,223 +126,223 @@ function quitarDelEquipo(pokemon) {
 
 <style scoped>
 .team-view {
-  padding: 28px 32px;
-  font-family: sans-serif;
+  padding: 28px 32px; /* relleno interior del contenedor principal */
+  font-family: sans-serif; /* fuente sin serif para toda la vista */
 }
 
 h2 {
-  font-size: 1.4rem;
-  margin-bottom: 4px;
+  font-size: 1.4rem; /* tamaño del título principal de la sección */
+  margin-bottom: 4px; /* separación mínima bajo el título */
 }
 
 .subtitulo {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 20px;
+  color: #666; /* color gris del texto descriptivo */
+  font-size: 0.9rem; /* tamaño pequeño del subtítulo */
+  margin-bottom: 20px; /* espacio bajo el subtítulo antes del contenido */
 }
 
 .columnas {
-  margin-bottom: 24px;
+  margin-bottom: 24px; /* separación inferior del bloque de columnas */
 }
 
 .col-titulo {
-  font-size: 0.9rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 0.9rem; /* tamaño del título de la columna */
+  font-weight: bold; /* negrita para el título de la columna */
+  color: #333; /* color oscuro del título de la columna */
+  margin-bottom: 10px; /* espacio bajo el título de la columna */
+  display: flex; /* alinea título y contador en fila */
+  align-items: center; /* centra verticalmente el título y contador */
+  gap: 8px; /* separación entre el título y el contador */
 }
 
 .contador {
-  font-size: 0.78rem;
-  background: #f0f0f0;
-  color: #666;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-weight: normal;
+  font-size: 0.78rem; /* tamaño pequeño del badge contador */
+  background: #f0f0f0; /* fondo gris claro del contador */
+  color: #666; /* color gris del número del contador */
+  padding: 2px 8px; /* relleno interno del badge contador */
+  border-radius: 20px; /* forma de píldora para el badge */
+  font-weight: normal; /* peso normal para el número del contador */
 }
 
 /* Capturados */
 .sin-capturados {
-  color: #aaa;
-  font-size: 0.88rem;
-  padding: 24px;
-  text-align: center;
+  color: #aaa; /* color gris claro del mensaje vacío */
+  font-size: 0.88rem; /* tamaño reducido del aviso sin capturas */
+  padding: 24px; /* relleno del área de mensaje vacío */
+  text-align: center; /* centra el texto de estado vacío */
 }
 
 .capturados-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  display: grid; /* activa layout de grilla para las tarjetas */
+  grid-template-columns: 1fr 1fr; /* dos columnas iguales para las tarjetas */
+  gap: 12px; /* separación entre tarjetas capturadas */
 }
 
 .cap-card {
-  border: 2px solid #ccc;
-  border-radius: 10px;
-  overflow: hidden;
+  border: 2px solid #ccc; /* borde gris de la tarjeta de capturado */
+  border-radius: 10px; /* esquinas redondeadas de la tarjeta */
+  overflow: hidden; /* oculta contenido que desborde la tarjeta */
 }
 
 .cap-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 10px 12px;
-  color: white;
-  gap: 6px;
+  display: flex; /* alinea info y badges en fila */
+  justify-content: space-between; /* separa info y badges en extremos */
+  align-items: flex-start; /* alinea contenido al inicio verticalmente */
+  padding: 10px 12px; /* relleno interior del encabezado de tarjeta */
+  color: white; /* texto blanco en el encabezado coloreado */
+  gap: 6px; /* separación entre info y badges del header */
 }
 
 .cap-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
+  display: flex; /* apila nombre y elemento en columna */
+  flex-direction: column; /* disposición vertical de nombre y elemento */
+  gap: 1px; /* mínima separación entre nombre y elemento */
+  min-width: 0; /* permite que el texto se recorte si es necesario */
 }
 
-.cap-nombre { font-weight: bold; font-size: 0.9rem; }
-.cap-elemento { font-size: 0.75rem; opacity: 0.85; }
+.cap-nombre { font-weight: bold; /* negrita del nombre del pokémon */ font-size: 0.9rem; /* tamaño del nombre en la tarjeta */ }
+.cap-elemento { font-size: 0.75rem; /* tamaño pequeño del tipo de elemento */ opacity: 0.85; /* leve transparencia del tipo de elemento */ }
 
 .cap-badges {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  flex-shrink: 0;
+  display: flex; /* apila los badges de nivel y rareza */
+  flex-direction: column; /* badges en columna vertical */
+  align-items: flex-end; /* alinea los badges a la derecha */
+  gap: 4px; /* separación entre los badges */
+  flex-shrink: 0; /* evita que los badges se compriman */
 }
 
 .nivel-badge {
-  font-size: 0.68rem;
-  font-weight: bold;
-  padding: 3px 7px;
-  border-radius: 20px;
-  background: rgba(0,0,0,0.25);
-  color: white;
-  white-space: nowrap;
+  font-size: 0.68rem; /* tamaño pequeño del badge de nivel */
+  font-weight: bold; /* negrita en el texto del nivel */
+  padding: 3px 7px; /* relleno interno del badge de nivel */
+  border-radius: 20px; /* forma redondeada del badge de nivel */
+  background: rgba(0,0,0,0.25); /* fondo oscuro semitransparente del nivel */
+  color: white; /* texto blanco sobre el fondo del nivel */
+  white-space: nowrap; /* evita el salto de línea en el nivel */
 }
 
 .rareza-badge {
-  font-size: 0.68rem;
-  font-weight: bold;
-  padding: 3px 7px;
-  border-radius: 20px;
-  color: white;
-  white-space: nowrap;
+  font-size: 0.68rem; /* tamaño pequeño del badge de rareza */
+  font-weight: bold; /* negrita en el texto de rareza */
+  padding: 3px 7px; /* relleno interno del badge de rareza */
+  border-radius: 20px; /* forma redondeada del badge de rareza */
+  color: white; /* texto blanco sobre el color de rareza */
+  white-space: nowrap; /* evita el salto de línea en la rareza */
 }
 
 .cap-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 8px 10px;
+  display: flex; /* apila las filas de estadísticas */
+  flex-direction: column; /* estadísticas en disposición vertical */
+  gap: 3px; /* separación mínima entre filas de stats */
+  padding: 8px 10px; /* relleno del área de estadísticas */
 }
 
 .stat-fila {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.78rem;
-  padding: 2px 5px;
-  background: #f9f9f9;
-  border-radius: 4px;
+  display: flex; /* nombre y valor de stat en fila */
+  justify-content: space-between; /* separa nombre y valor del stat */
+  font-size: 0.78rem; /* tamaño pequeño de las estadísticas */
+  padding: 2px 5px; /* relleno interno de cada fila de stat */
+  background: #f9f9f9; /* fondo gris claro de cada fila de stat */
+  border-radius: 4px; /* esquinas suavizadas de la fila de stat */
 }
 
-.stat-nombre { color: #444; }
-.stat-valor  { font-weight: bold; color: #222; }
+.stat-nombre { color: #444; /* color oscuro del nombre de la estadística */ }
+.stat-valor  { font-weight: bold; /* negrita para el valor de la estadística */ color: #222; /* color muy oscuro del valor de la estadística */ }
 
 .cap-botones {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid #eee;
+  display: flex; /* apila los botones de acción verticalmente */
+  flex-direction: column; /* botones en columna dentro de la tarjeta */
+  border-top: 1px solid #eee; /* línea separadora sobre los botones */
 }
 
 .btn-agregar,
 .btn-eliminar {
-  padding: 7px;
-  font-size: 0.78rem;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  transition: filter 0.2s;
-  color: white;
+  padding: 7px; /* relleno uniforme de los botones de acción */
+  font-size: 0.78rem; /* tamaño pequeño del texto de los botones */
+  font-weight: bold; /* negrita en el texto de los botones */
+  border: none; /* elimina el borde predeterminado del botón */
+  cursor: pointer; /* cursor de mano al pasar sobre el botón */
+  transition: filter 0.2s; /* transición suave del brillo al hover */
+  color: white; /* texto blanco en los botones de acción */
 }
 
 .agregado-aviso {
-  text-align: center;
-  padding: 7px;
-  background: #edfff3;
-  border-bottom: 1px solid #eee;
-  color: #1a9e3f;
-  font-weight: bold;
-  font-size: 0.78rem;
-  border-bottom: 2px solid #2dc653;
+  text-align: center; /* texto centrado en el aviso de agregado */
+  padding: 7px; /* relleno del aviso de pokémon en equipo */
+  background: #edfff3; /* fondo verde claro del aviso de agregado */
+  border-bottom: 1px solid #eee; /* línea inferior gris (sobreescrita después) */
+  color: #1a9e3f; /* color verde del texto de confirmación */
+  font-weight: bold; /* negrita en el aviso de agregado */
+  font-size: 0.78rem; /* tamaño del texto del aviso de agregado */
+  border-bottom: 2px solid #2dc653; /* línea inferior verde del aviso (final) */
 }
 
 .btn-agregar {
-  background: #ccc;
-  border-bottom: 1px solid #eee;
+  background: #ccc; /* fondo gris cuando el equipo está lleno */
+  border-bottom: 1px solid #eee; /* línea separadora bajo el botón agregar */
 }
 
 .btn-eliminar {
-  background: #e63946;
+  background: #e63946; /* fondo rojo del botón eliminar del equipo */
 }
 
 .btn-agregar:not(:disabled):hover,
-.btn-eliminar:not(:disabled):hover { filter: brightness(0.9); }
+.btn-eliminar:not(:disabled):hover { filter: brightness(0.9); /* oscurece el botón al pasar el cursor */ }
 
 .btn-agregar:disabled,
 .btn-eliminar:disabled {
-  cursor: not-allowed;
-  opacity: 0.35;
-  background: #ddd;
-  color: #999;
+  cursor: not-allowed; /* cursor de prohibición cuando está desactivado */
+  opacity: 0.35; /* alta transparencia cuando el botón está desactivado */
+  background: #ddd; /* fondo gris claro del botón desactivado */
+  color: #999; /* texto gris del botón desactivado */
 }
 
 /* Paginación capturados */
 .paginacion-cap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 14px;
+  display: flex; /* botones de paginación en fila */
+  align-items: center; /* centra verticalmente los controles de página */
+  justify-content: center; /* centra horizontalmente la paginación */
+  gap: 12px; /* separación entre los controles de paginación */
+  margin-top: 14px; /* separación superior de la barra de paginación */
 }
 
 .btn-pagina {
-  padding: 6px 14px;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: border-color 0.2s;
+  padding: 6px 14px; /* relleno del botón de página anterior/siguiente */
+  background: white; /* fondo blanco del botón de paginación */
+  border: 1px solid #ccc; /* borde gris del botón de paginación */
+  border-radius: 8px; /* esquinas redondeadas del botón de página */
+  font-size: 0.82rem; /* tamaño del texto del botón de página */
+  cursor: pointer; /* cursor de mano en el botón de página */
+  transition: border-color 0.2s; /* transición suave del borde al hover */
 }
 
 .btn-pagina:hover:not(:disabled) {
-  border-color: #888;
+  border-color: #888; /* borde más oscuro al pasar el cursor */
 }
 
 .btn-pagina:disabled {
-  opacity: 0.35;
-  cursor: default;
+  opacity: 0.35; /* alta transparencia en página desactivada */
+  cursor: default; /* cursor normal en botón desactivado */
 }
 
 .pagina-info {
-  font-size: 0.82rem;
-  color: #888;
+  font-size: 0.82rem; /* tamaño del indicador de página actual */
+  color: #888; /* color gris del indicador de página */
 }
 
 /* Volver */
 .btn-volver {
-  display: block;
-  margin: 0 auto 20px;
-  padding: 8px 18px;
-  background: white;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.88rem;
-  color: #555;
-  transition: border-color 0.2s, color 0.2s;
+  display: block; /* el botón ocupa su propia línea */
+  margin: 0 auto 20px; /* centra el botón y añade espacio inferior */
+  padding: 8px 18px; /* relleno interno del botón volver */
+  background: white; /* fondo blanco del botón volver */
+  border: 2px solid #ccc; /* borde gris del botón volver */
+  border-radius: 8px; /* esquinas redondeadas del botón volver */
+  cursor: pointer; /* cursor de mano en el botón volver */
+  font-size: 0.88rem; /* tamaño del texto del botón volver */
+  color: #555; /* color gris del texto del botón volver */
+  transition: border-color 0.2s, color 0.2s; /* transición suave de borde y color al hover */
 }
 
-.btn-volver:hover { border-color: #888; color: #222; }
+.btn-volver:hover { border-color: #888; /* borde más oscuro al pasar el cursor */ color: #222; /* texto más oscuro al pasar el cursor */ }
 </style>

@@ -228,213 +228,216 @@ function crearEntrenador() {
 
 <style scoped>
 .crear-entrenador {
-  max-width: 760px;
-  margin: 48px auto;
-  font-family: sans-serif;
-  padding: 0 16px;
+  max-width: 760px; /* ancho máximo del formulario de creación */
+  margin: 48px auto; /* centrado horizontal con espacio superior */
+  font-family: sans-serif; /* tipografía base del componente */
+  padding: 0 16px; /* margen lateral para pantallas pequeñas */
 }
 
 h1 {
-  font-size: 2rem;
-  text-align: center;
-  margin-bottom: 28px;
+  font-size: 2rem; /* tamaño del título principal de la pantalla */
+  text-align: center; /* centra el título horizontalmente */
+  margin-bottom: 28px; /* separación del título al siguiente bloque */
 }
 
 .campo-nombre {
-  margin-bottom: 28px;
+  margin-bottom: 28px; /* separación del campo nombre al selector de clase */
 }
 
 label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 8px;
+  display: block; /* ocupa toda la línea para el texto de etiqueta */
+  font-weight: bold; /* negrita para destacar la etiqueta del campo */
+  margin-bottom: 8px; /* espacio entre la etiqueta y el input */
 }
 
 input {
-  width: 100%;
-  padding: 10px;
-  font-size: 1rem;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
+  width: 100%; /* el input ocupa todo el ancho disponible */
+  padding: 10px; /* espacio interno del campo de texto */
+  font-size: 1rem; /* tamaño de fuente estándar en el input */
+  border: 2px solid #ccc; /* borde gris claro del campo de nombre */
+  border-radius: 8px; /* esquinas redondeadas del input */
+  box-sizing: border-box; /* el padding no desborda el ancho declarado */
 }
 
 .selector-clase {
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  min-height: 300px;
+  display: flex; /* lista y panel derecho en fila horizontal */
+  gap: 20px; /* separación entre lista de clases y detalle */
+  align-items: flex-start; /* alinea lista y panel al borde superior */
+  min-height: 300px; /* altura mínima para no colapsar sin selección */
 }
 
 .lista-clases {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 170px;
+  display: flex; /* items de clase apilados en columna */
+  flex-direction: column; /* apila verticalmente los items de clase */
+  gap: 8px; /* separación entre cada opción de clase */
+  min-width: 170px; /* ancho mínimo de la columna de clases */
 }
 
 .clase-item {
-  padding: 10px 14px;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: border-color 0.2s, color 0.2s, background-color 0.2s;
+  padding: 10px 14px; /* espacio interno de cada botón de clase */
+  border: 2px solid #ccc; /* borde por defecto de cada opción de clase */
+  border-radius: 8px; /* esquinas redondeadas del item de clase */
+  cursor: pointer; /* cursor de mano al pasar sobre la clase */
+  font-weight: bold; /* nombre de la clase en negrita */
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s; /* transición suave al seleccionar o hacer hover */
 }
 
 .clase-item:hover {
-  background-color: #f5f5f5;
+  background-color: #f5f5f5; /* fondo claro al pasar el cursor por encima */
 }
 
 .clase-item.seleccionada {
-  background-color: #fafafa;
+  background-color: #fafafa; /* fondo sutil de la clase actualmente elegida */
 }
 
 .detalle-clase {
-  flex: 1;
-  border: 2px solid #ccc;
-  border-radius: 12px;
-  padding: 20px 24px;
+  flex: 1; /* el panel de detalle ocupa el espacio restante */
+  border: 2px solid #ccc; /* borde del panel de estadísticas de la clase */
+  border-radius: 12px; /* esquinas redondeadas del panel de detalle */
+  padding: 20px 24px; /* espacio interno del panel de estadísticas */
 }
 
 .detalle-vacio {
-  flex: 1;
-  border: 2px dashed #ccc;
-  border-radius: 12px;
-  padding: 20px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #aaa;
-  font-size: 0.95rem;
+  flex: 1; /* ocupa el mismo espacio que el panel con datos */
+  border: 2px dashed #ccc; /* borde discontinuo cuando no hay clase elegida */
+  border-radius: 12px; /* esquinas redondeadas del panel vacío */
+  padding: 20px 24px; /* espacio interno del mensaje de selección */
+  display: flex; /* centra el mensaje de instrucción */
+  align-items: center; /* centrado vertical del texto de ayuda */
+  justify-content: center; /* centrado horizontal del texto de ayuda */
+  color: #aaa; /* color gris claro del texto de instrucción */
+  font-size: 0.95rem; /* tamaño del texto de instrucción vacía */
 }
 
 h2 {
-  margin: 0 0 8px 0;
-  font-size: 1.4rem;
+  margin: 0 0 8px 0; /* sin margen superior, separación inferior al párrafo */
+  font-size: 1.4rem; /* tamaño del nombre de la clase seleccionada */
 }
 
 .clase-desc {
-  color: #555;
-  margin: 0 0 16px 0;
-  font-size: 0.9rem;
+  color: #555; /* color del texto descriptivo de la clase */
+  margin: 0 0 16px 0; /* separación de la descripción a las estadísticas */
+  font-size: 0.9rem; /* tamaño reducido del texto descriptivo */
 }
 
 .stats {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: flex; /* lista de stats en disposición de columna */
+  flex-direction: column; /* apila filas de stats una bajo otra */
+  gap: 6px; /* separación entre cada fila de estadística */
 }
 
 .stat-fila {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 8px;
-  background: #f9f9f9;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  display: flex; /* nombre y valor del stat en fila horizontal */
+  justify-content: space-between; /* nombre a la izquierda, valor a la derecha */
+  align-items: center; /* alinea verticalmente nombre y valor del stat */
+  padding: 4px 8px; /* espacio interno de cada fila de stat */
+  background: #f9f9f9; /* fondo claro de cada fila de estadística */
+  border-radius: 6px; /* esquinas suavizadas de la fila de stat */
+  font-size: 0.9rem; /* tamaño de fuente de cada fila de stat */
 }
 
-.stat-nombre { color: #333; }
-.stat-valor  { font-weight: bold; }
-.positivo    { color: #2dc653; }
-.negativo    { color: #e63946; }
-.neutro      { color: #aaa; }
+.stat-nombre { color: #333; } /* color oscuro del nombre de la estadística */
+.stat-valor  { font-weight: bold; } /* valor en negrita para destacarlo */
+.positivo    { color: #2dc653; } /* verde para bonificaciones positivas */
+.negativo    { color: #e63946; } /* rojo para penalizaciones de stat */
+.neutro      { color: #aaa; } /* gris para stats sin modificación */
 
 /* Guía de stats */
 .guia-stats {
-  margin-top: 40px;
+  margin-top: 40px; /* separación de la guía al selector de clase */
 }
 
 .guia-stats h3 {
-  font-size: 1rem;
-  font-weight: bold;
-  margin-bottom: 12px;
-  color: #444;
+  font-size: 1rem; /* tamaño del título de la sección guía */
+  font-weight: bold; /* negrita del título de la guía de stats */
+  margin-bottom: 12px; /* separación del título a las tarjetas de guía */
+  color: #444; /* color del título de la sección guía */
 }
 
 .guia-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+  display: grid; /* tarjetas de guía en cuadrícula */
+  grid-template-columns: 1fr 1fr 1fr; /* tres columnas iguales para las tarjetas */
+  gap: 10px; /* separación entre tarjetas de guía */
 }
 
 .guia-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 10px 12px;
+  display: flex; /* ícono y texto en fila dentro de la tarjeta */
+  align-items: flex-start; /* alinea ícono y texto al borde superior */
+  gap: 10px; /* separación entre ícono y descripción del stat */
+  background: #f9f9f9; /* fondo claro de cada tarjeta de guía */
+  border: 1px solid #e0e0e0; /* borde sutil de cada tarjeta de guía */
+  border-radius: 10px; /* esquinas redondeadas de la tarjeta de guía */
+  padding: 10px 12px; /* espacio interno de la tarjeta de guía */
 }
 
 .guia-icono {
-  font-size: 1.4rem;
-  line-height: 1;
-  flex-shrink: 0;
+  font-size: 1.4rem; /* tamaño del emoji de cada stat en la guía */
+  line-height: 1; /* evita espacio extra bajo el emoji */
+  flex-shrink: 0; /* el ícono no se encoge al reducir el ancho */
 }
 
 .guia-card div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: flex; /* nombre y descripción apilados en columna */
+  flex-direction: column; /* coloca nombre arriba y descripción abajo */
+  gap: 2px; /* mínima separación entre nombre y descripción */
 }
 
 .guia-nombre {
-  font-weight: bold;
-  font-size: 0.85rem;
-  color: #222;
+  font-weight: bold; /* nombre del stat en negrita */
+  font-size: 0.85rem; /* tamaño del nombre del stat en la guía */
+  color: #222; /* color oscuro del nombre del stat */
 }
 
 .guia-desc {
-  font-size: 0.78rem;
-  color: #666;
+  font-size: 0.78rem; /* tamaño pequeño del texto descriptivo del stat */
+  color: #666; /* color gris de la descripción del stat */
 }
 
 /* Botones */
 .btn-volver {
-  display: block;
-  margin: 0 auto 20px;
-  padding: 8px 18px;
-  background: white;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.88rem;
-  color: #555;
-  transition: border-color 0.2s, color 0.2s;
+  display: block; /* el botón ocupa su propia línea */
+  margin: 0 auto 20px; /* centrado con separación inferior */
+  padding: 8px 18px; /* espacio interno del botón volver */
+  background: white; /* fondo blanco del botón volver */
+  border: 2px solid #ccc; /* borde gris claro del botón volver */
+  border-radius: 8px; /* esquinas redondeadas del botón volver */
+  cursor: pointer; /* cursor de mano sobre el botón */
+  font-size: 0.88rem; /* tamaño de fuente del botón volver */
+  color: #555; /* color gris del texto del botón volver */
+  transition: border-color 0.2s, color 0.2s; /* transición suave al hacer hover */
 }
 
-.btn-volver:hover { border-color: #888; color: #222; }
+.btn-volver:hover {
+  border-color: #888; /* oscurece el borde al pasar el cursor */
+  color: #222; /* oscurece el texto al hacer hover */
+}
 
 .btn-elegir {
-  display: block;
-  margin: 28px auto 0;
-  padding: 12px 40px;
-  font-size: 1rem;
-  background-color: #555;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.1s;
+  display: block; /* el botón ocupa su propia línea */
+  margin: 28px auto 0; /* centrado con separación superior */
+  padding: 12px 40px; /* espacio interno amplio del botón principal */
+  font-size: 1rem; /* tamaño de fuente del botón elegir */
+  background-color: #555; /* color gris base hasta elegir una clase */
+  color: white; /* texto blanco sobre el fondo del botón */
+  border: none; /* sin borde para el botón de acción principal */
+  border-radius: 10px; /* esquinas redondeadas del botón elegir */
+  cursor: pointer; /* cursor de mano sobre el botón */
+  transition: background-color 0.3s, transform 0.1s; /* transición de color y escala */
 }
 
 .btn-elegir:hover {
-  filter: brightness(0.9);
-  transform: scale(1.02);
+  filter: brightness(0.9); /* oscurece el color de clase al hacer hover */
+  transform: scale(1.02); /* agranda ligeramente el botón al pasar el cursor */
 }
 
 .detalle-enter-active,
 .detalle-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease; /* duración de animación de entrada y salida del panel */
 }
 
 .detalle-enter-from,
 .detalle-leave-to {
-  opacity: 0;
-  transform: translateX(12px);
+  opacity: 0; /* panel invisible al iniciar entrada o salida */
+  transform: translateX(12px); /* desplazamiento lateral al animar el panel */
 }
 </style>

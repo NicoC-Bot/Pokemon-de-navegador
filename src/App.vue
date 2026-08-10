@@ -54,12 +54,15 @@ function confirmarInicio() {
   juegoIniciado.value = true
 }
 
-function actualizarPokemon({ index, datos }) {
+function actualizarPokemon({ uid, datos }) {
   const { sesionEntrenamiento, ...restoData } = datos
-  const actualizado = { ...equipo.value[index], ...restoData }
-  equipo.value[index] = actualizado
-  const i = capturados.value.findIndex(p => p.uid === actualizado.uid)
-  if (i !== -1) capturados.value[i] = actualizado
+  const iCap = capturados.value.findIndex(p => p.uid === uid)
+  if (iCap !== -1) {
+    const actualizado = { ...capturados.value[iCap], ...restoData }
+    capturados.value[iCap] = actualizado
+    const iEq = equipo.value.findIndex(p => p.uid === uid)
+    if (iEq !== -1) equipo.value[iEq] = actualizado
+  }
   if (sesionEntrenamiento) sesionesEntrenamiento.value.push(sesionEntrenamiento)
 }
 
@@ -307,33 +310,33 @@ function completarDescanso() {
 
 <style scoped>
 .pantalla-carga {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #111;
+  min-height: 100vh; /* pantalla ocupa todo el alto de la ventana */
+  display: flex; /* disposición flex para centrar el contenido */
+  align-items: center; /* centra verticalmente el contenido */
+  justify-content: center; /* centra horizontalmente el contenido */
+  background: #111; /* fondo oscuro de la pantalla de carga */
 }
 
 .carga-contenido {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  color: #aaa;
-  font-family: sans-serif;
-  font-size: 0.95rem;
+  display: flex; /* disposición flex del área interior de carga */
+  flex-direction: column; /* apila spinner y texto verticalmente */
+  align-items: center; /* centra los elementos del área de carga */
+  gap: 16px; /* separación entre spinner y texto */
+  color: #aaa; /* color gris del texto de carga */
+  font-family: sans-serif; /* fuente del mensaje de carga */
+  font-size: 0.95rem; /* tamaño de fuente del mensaje de carga */
 }
 
 .carga-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid #333;
-  border-top-color: white;
-  border-radius: 50%;
-  animation: girar 0.7s linear infinite;
+  width: 36px; /* ancho del spinner de carga */
+  height: 36px; /* alto del spinner de carga */
+  border: 3px solid #333; /* borde oscuro base del spinner */
+  border-top-color: white; /* borde superior blanco que gira */
+  border-radius: 50%; /* forma circular del spinner */
+  animation: girar 0.7s linear infinite; /* animación de rotación continua */
 }
 
 @keyframes girar {
-  to { transform: rotate(360deg); }
+  to { transform: rotate(360deg); } /* rotación completa en la animación */
 }
 </style>

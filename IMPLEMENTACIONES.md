@@ -89,10 +89,10 @@ int_get('id')
 ## Base de Datos
 
 ### Normalización
-- **21 tablas** en total, organizadas en tres categorías:
+- **22 tablas** en total, organizadas en tres categorías:
   - **Lookup (10):** `batalla_estados`, `batalla_resultados`, `equipos`, `tipos_accion`, `tipos_material`, `habilidad_tipos`, `stat_tipos`, `elementos`, `rareza_tipos`, `clases_catalogo`
   - **Catálogo (2):** `pokemon_catalogo`, `habilidades_catalogo`
-  - **Datos (9):** `partidas`, `pokemon_partida`, `inventario_partida`, `batallas`, `batalla_participantes`, `batalla_turnos`, `materiales`, `entrenamiento_sesiones`, `entrenamiento_stats`
+  - **Datos (10):** `partidas`, `pokemon_partida`, `inventario_partida`, `batallas`, `batalla_participantes`, `batalla_turnos`, `materiales`, `entrenamiento_sesiones`, `entrenamiento_stats`, `entrenamiento_log`
 - Sin ENUMs ni strings repetidos — todo referenciado por FK a tablas lookup.
 
 ### Foreign Keys
@@ -127,6 +127,7 @@ int_get('id')
 - `partidas_log` — registra acciones sobre partidas (crear, modificar, eliminar).
 - `pokemon_nivel_log` — registra cambios de nivel por pokemon.
 - `batallas_log` — registra registro de cada batalla.
+- `entrenamiento_log` — registra qué pokemon de cuál partida recibió un entrenamiento y en qué fecha. Sin detalle de stats; solo auditoría de acción. Campos: `id`, `partida_id`, `pokemon_uid`, `fecha` (DATETIME DEFAULT CURRENT_TIMESTAMP).
 
 ### Columna JSON
 - `clases_catalogo.stats` almacena los bonos de stat de cada clase como JSON.
@@ -173,3 +174,36 @@ int_get('id')
 
 ### Pantalla de carga
 - Al cargar una partida guardada se muestra un spinner animado hasta que los datos estén listos.
+
+### Sistema de entrenamiento
+
+#### `src/utils/bonos.js`
+Utilidades de cálculo extraídas de `TrainView` para mantener la lógica separada del componente.
+
+**`aplicarBono(valor, bono)`**
+Aplica un porcentaje de bono a un valor base. Usa `Math.round` para no acumular decimales y `Math.max(1, ...)` para garantizar mínimo 1 punto de ganancia.
+```js
+aplicarBono(5, 20)   // → 6   (5 × 1.20 = 6)
+aplicarBono(5, -10)  // → 5   (5 × 0.90 = 4.5 → redondeado a 5; mínimo 1)
+```
+
+**`calcularGananciaTotal(valorBase, totalEntrenamiento, bono)`**
+Calcula la ganancia total de una sesión de entrenamiento aplicando el bono correctamente. Divide el total entrenado en puntos individuales (cada punto = `valorBase`) y aplica el bono a cada uno, evitando el error de aplicar el bono solo una vez sobre el total.
+```js
+calcularGananciaTotal(5, 15, 20)
+// 3 puntos de entrenamiento (15 / 5), cada uno vale aplicarBono(5, 20) = 6 → total: 18
+```
+
+**`subirStatNivel(valorStat)`**
+Sube un stat +2 al subir de nivel. Si ya está en 150 no lo modifica; si el resultado supera 150 lo tapa en ese tope.
+```js
+subirStatNivel(100)  // → 102
+subirStatNivel(149)  // → 150
+subirStatNivel(150)  // → 150 (sin cambio)
+```
+
+#### TrainView — mejoras
+- **Bono de clase en entrenamiento:** cada punto de entrenamiento aplica `aplicarBono(ganancia(), bonoStat)`, lo que significa que una clase con bono positivo gana más por entrenamiento y con bono negativo gana menos. El botón disminuir usa la misma función para garantizar simetría.
+- **Barra fantasma de XP:** muestra con color semitransparente hasta dónde llegará la XP al confirmar el entrenamiento actual. Se calcula como `(xp + xpPendiente) / xpNecesaria * 100`, renderizado con `position: absolute` detrás de la barra real (`z-index: 1`).
+- **Indicador `+X xp`:** texto a la derecha de la etiqueta de XP que aparece solo cuando hay entrenamientos pendientes por confirmar.
+- **`subirStatNivel` en subida de nivel:** al confirmar y subir de nivel, cada stat aumenta +2 con tope en 150 usando la función utilitaria.

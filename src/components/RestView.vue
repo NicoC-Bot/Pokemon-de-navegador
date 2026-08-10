@@ -137,117 +137,120 @@ onUnmounted(() => {
 
 <style scoped>
 .rest-view {
-  padding: 32px;
-  font-family: sans-serif;
-  max-width: 500px;
+  padding: 32px; /* espacio interno de la vista de descanso */
+  font-family: sans-serif; /* tipografía base del componente */
+  max-width: 500px; /* ancho máximo del panel de descanso */
 }
 
 h2 {
-  font-size: 1.6rem;
-  margin-bottom: 4px;
+  font-size: 1.6rem; /* tamaño del título "Descanso" */
+  margin-bottom: 4px; /* mínima separación del título al subtítulo */
 }
 
 .subtitulo {
-  color: #666;
-  margin-bottom: 32px;
-  font-size: 0.95rem;
+  color: #666; /* color gris del subtítulo explicativo */
+  margin-bottom: 32px; /* separación del subtítulo al bloque activo */
+  font-size: 0.95rem; /* tamaño reducido del subtítulo */
 }
 
 /* Descansando */
 .descansando,
 .bloqueado {
-  text-align: center;
-  padding: 40px 24px;
-  border: 2px solid #e0e0e0;
-  border-radius: 14px;
-  margin-bottom: 24px;
+  text-align: center; /* centra ícono, texto y contador */
+  padding: 40px 24px; /* espacio interno del panel de estado */
+  border: 2px solid #e0e0e0; /* borde gris claro del panel de estado */
+  border-radius: 14px; /* esquinas redondeadas del panel */
+  margin-bottom: 24px; /* separación inferior del panel de estado */
 }
 
 .descanso-icono {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 12px;
+  font-size: 3rem; /* tamaño grande del emoji de estado */
+  display: block; /* el emoji ocupa su propia línea */
+  margin-bottom: 12px; /* separación del ícono al texto de estado */
 }
 
 .countdown {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #222;
-  margin: 12px 0;
+  font-size: 2rem; /* tamaño grande del temporizador de cuenta regresiva */
+  font-weight: bold; /* negrita para destacar el tiempo restante */
+  color: #222; /* color oscuro del texto del temporizador */
+  margin: 12px 0; /* separación vertical del temporizador */
 }
 
 .pe-info {
-  color: #666;
-  font-size: 0.9rem;
+  color: #666; /* color gris del texto de PE a recuperar */
+  font-size: 0.9rem; /* tamaño del texto informativo de PE */
 }
 
 .bloqueado p {
-  color: #888;
+  color: #888; /* color gris del texto en estado de cooldown */
 }
 
 /* Opciones */
 .opciones {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  display: flex; /* tarjetas de opción apiladas verticalmente */
+  flex-direction: column; /* columna para apilar las opciones de descanso */
+  gap: 12px; /* separación entre cada tarjeta de opción */
+  margin-bottom: 24px; /* separación del bloque de opciones al pie */
 }
 
 .opcion-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex; /* ícono, info y PE en fila horizontal */
+  align-items: center; /* alinea verticalmente los elementos de la tarjeta */
+  gap: 16px; /* separación entre ícono, descripción y PE */
+  padding: 16px 20px; /* espacio interno de cada tarjeta de opción */
+  border: 2px solid #e0e0e0; /* borde gris de la tarjeta de opción */
+  border-radius: 12px; /* esquinas redondeadas de la tarjeta */
+  cursor: pointer; /* cursor de mano sobre la tarjeta de opción */
+  transition: border-color 0.2s, box-shadow 0.2s; /* transición al pasar el cursor */
 }
 
 .opcion-card:hover {
-  border-color: #888;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-color: #888; /* borde oscuro al pasar el cursor */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* sombra sutil al hacer hover */
 }
 
 .opcion-icono {
-  font-size: 1.8rem;
+  font-size: 1.8rem; /* tamaño del emoji de la opción de descanso */
 }
 
 .opcion-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
+  display: flex; /* nombre y tiempo en columna dentro de la info */
+  flex-direction: column; /* apila nombre y duración verticalmente */
+  gap: 2px; /* mínima separación entre nombre y tiempo */
+  flex: 1; /* la info ocupa el espacio disponible en la fila */
 }
 
 .opcion-nombre {
-  font-weight: bold;
-  font-size: 0.95rem;
+  font-weight: bold; /* nombre de la opción en negrita */
+  font-size: 0.95rem; /* tamaño del nombre de la opción de descanso */
 }
 
 .opcion-tiempo {
-  font-size: 0.82rem;
-  color: #888;
+  font-size: 0.82rem; /* tamaño pequeño del texto de duración */
+  color: #888; /* color gris de la duración de la opción */
 }
 
 .opcion-pe {
-  font-weight: bold;
-  font-size: 1rem;
-  color: #2dc653;
+  font-weight: bold; /* PE recuperados en negrita */
+  font-size: 1rem; /* tamaño del texto de PE de la opción */
+  color: #2dc653; /* verde para destacar los PE recuperables */
 }
 
 .btn-volver {
-  display: block;
-  margin: 0 auto 20px;
-  padding: 8px 18px;
-  background: white;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.88rem;
-  color: #555;
-  transition: border-color 0.2s, color 0.2s;
+  display: block; /* el botón ocupa su propia línea */
+  margin: 0 auto 20px; /* centrado con separación inferior */
+  padding: 8px 18px; /* espacio interno del botón volver */
+  background: white; /* fondo blanco del botón volver */
+  border: 2px solid #ccc; /* borde gris claro del botón volver */
+  border-radius: 8px; /* esquinas redondeadas del botón */
+  cursor: pointer; /* cursor de mano sobre el botón */
+  font-size: 0.88rem; /* tamaño de fuente del botón volver */
+  color: #555; /* color gris del texto del botón */
+  transition: border-color 0.2s, color 0.2s; /* transición suave al hacer hover */
 }
 
-.btn-volver:hover { border-color: #888; color: #222; }
+.btn-volver:hover {
+  border-color: #888; /* oscurece el borde al pasar el cursor */
+  color: #222; /* oscurece el texto al hacer hover */
+}
 </style>
