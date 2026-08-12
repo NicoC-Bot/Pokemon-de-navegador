@@ -178,11 +178,11 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_batalla_insert
-AFTER INSERT ON batallas
-FOR EACH ROW
-BEGIN
-  INSERT INTO batallas_log (batalla_id) VALUES (NEW.id);
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_batalla_insert
+AFTER INSERT ON batallas
+FOR EACH ROW
+BEGIN
+  INSERT INTO batallas_log (batalla_id) VALUES (NEW.id);
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -410,6 +410,40 @@ INSERT INTO `habilidad_tipos` VALUES (1,'fisico'),(2,'especial'),(3,'estado');
 UNLOCK TABLES;
 
 --
+-- Table structure for table `habilidades_ascension_catalogo`
+--
+
+DROP TABLE IF EXISTS `habilidades_ascension_catalogo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `habilidades_ascension_catalogo` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `identificador` varchar(40) NOT NULL,
+  `elemento` varchar(30) DEFAULT NULL,
+  `rareza` varchar(20) DEFAULT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `tipo` varchar(20) NOT NULL,
+  `potencia` tinyint(3) unsigned DEFAULT NULL,
+  `precision` tinyint(3) unsigned DEFAULT NULL,
+  `descripcion` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`descripcion`)),
+  `efecto` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`efecto`)),
+  `escala` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_identificador` (`identificador`)
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `habilidades_ascension_catalogo`
+--
+
+LOCK TABLES `habilidades_ascension_catalogo` WRITE;
+/*!40000 ALTER TABLE `habilidades_ascension_catalogo` DISABLE KEYS */;
+INSERT INTO `habilidades_ascension_catalogo` VALUES (1,'golpe-abrasador','🔥 Fuego',NULL,'Golpe Abrasador','fisico',55,90,'{"base":"Impacto cargado de fuego.","efecto":"30% de reducir la Defensa rival −20% por 2 turnos."}','{"tipo":"debuff","stat":"Defensa","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}',NULL),(2,'frenesi-igneo','🔥 Fuego',NULL,'Frenesí Ígneo','fisico',40,100,'{"base":"Golpe veloz en llamas.","efecto":"50% de quemar al rival, reduciendo su Ataque 15% por 2 turnos."}','{"tipo":"quemadura","stat":"Ataque","reduccion":15,"turnos":2,"probabilidad":50,"acumulable":false}',NULL),(3,'brasa-impetuosa','🔥 Fuego',NULL,'Brasa Impetuosa','fisico',45,100,'{"base":"Golpe explosivo desde las brasas.","efecto":"Si el usuario tiene ≤50% HP, la potencia sube a 65."}','{"tipo":"condicion-hp","umbral":0.5,"potenciaBonus":20}',NULL),(13,'sobrecarga','⚡ Eléctrico',NULL,'Sobrecarga','especial',55,90,'{"base":"Explosión eléctrica masiva.","efecto":"40% de paralizar al rival, reduciendo su Velocidad −30% por 2 turnos."}','{"tipo":"paralisis","stat":"Velocidad","reduccion":30,"turnos":2,"probabilidad":40,"acumulable":false}',NULL),(14,'impulso-voltaico','⚡ Eléctrico',NULL,'Impulso Voltaico','fisico',45,100,'{"base":"Golpe eléctrico que interrumpe.","efecto":"35% de reducir el Ataque rival −15% por 2 turnos."}','{"tipo":"debuff","stat":"Ataque","reduccion":15,"turnos":2,"probabilidad":35,"acumulable":false}',NULL),(15,'carga-estatica','⚡ Eléctrico',NULL,'Carga Estática','fisico',35,100,'{"base":"Descarga rápida.","efecto":"50% de reducir la Velocidad rival −20% por 2 turnos."}','{"tipo":"paralisis","stat":"Velocidad","reduccion":20,"turnos":2,"probabilidad":50,"acumulable":false}',NULL),(16,'corte-aereo','🌀 Viento',NULL,'Corte Aéreo','especial',50,90,'{"base":"Hoja de viento cortante.","efecto":"30% de reducir la Velocidad rival −20% por 2 turnos."}','{"tipo":"debuff","stat":"Velocidad","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}',NULL),(17,'ventisca-esquiva','🌀 Viento',NULL,'Ventisca Esquiva','especial',45,100,'{"base":"Ráfaga defensiva.","efecto":"40% de esquivar el siguiente ataque recibido."}','{"tipo":"esquiva","probabilidad":40}',NULL),(18,'rafaga-precisa','🌀 Viento',NULL,'Ráfaga Precisa','especial',35,100,'{"base":"Viento concentrado.","efecto":"50% de esquivar el siguiente ataque recibido."}','{"tipo":"esquiva","probabilidad":50}',NULL),(19,'garra-umbral','🌑 Oscuro',NULL,'Garra Umbral','fisico',50,90,'{"base":"Zarpazo desde las sombras.","efecto":"35% de reducir la Defensa rival −15% por 2 turnos."}','{"tipo":"debuff","stat":"Defensa","reduccion":15,"turnos":2,"probabilidad":35,"acumulable":false}',NULL),(20,'pulso-oscuro','🌑 Oscuro',NULL,'Pulso Oscuro','especial',55,85,'{"base":"Onda de energía sombría.","efecto":"25% de reducir el Ataque Esp. rival −15% por 2 turnos."}','{"tipo":"debuff","stat":"Ataque Esp.","reduccion":15,"turnos":2,"probabilidad":25,"acumulable":false}',NULL),(21,'maldicion-sombria','🌑 Oscuro',NULL,'Maldición Sombría','estado',NULL,NULL,'{"base":"Corrupción mental.","efecto":"Debuff acumulable en Ataque Esp. rival (−5%/stack, máx 3, 2 turnos)."}','{"tipo":"debuff","stat":"Ataque Esp.","reduccion":5,"turnos":2,"probabilidad":100,"acumulable":true,"stacksMax":3}',NULL),(22,'destello-sagrado','✨ Luz',NULL,'Destello Sagrado','especial',55,90,'{"base":"Explosión de luz sagrada.","efecto":"30% de reducir la Defensa Esp. rival −20% por 2 turnos."}','{"tipo":"debuff","stat":"Defensa Esp.","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}',NULL),(23,'halo-protector','✨ Luz',NULL,'Halo Protector','especial',35,100,'{"base":"Destello sanador.","efecto":"Recupera el 25% del HP máximo propio."}','{"tipo":"regeneracion","porcentaje":25,"cooldown":0}',NULL),(24,'rayo-cenital','✨ Luz',NULL,'Rayo Cenital','especial',50,100,'{"base":"Rayo de luz pura.","efecto":"Si el usuario tiene ≤50% HP, la potencia sube a 80."}','{"tipo":"condicion-hp","umbral":0.5,"potenciaBonus":30}',NULL),(25,'golpe-fiel',NULL,'comun','Golpe Fiel','fisico',30,100,'{"base":"Un golpe básico pero confiable. Sin efectos adicionales."}',NULL,NULL),(26,'tenacidad',NULL,'pocoComun','Tenacidad','fisico',35,100,'{"base":"Golpe resistente.","efecto":"Si el usuario tiene ≤50% HP, la potencia sube a 60."}','{"tipo":"condicion-hp","umbral":0.5,"potenciaBonus":25}',NULL),(27,'fuerza-interior',NULL,'raro','Fuerza Interior','especial',45,100,'{"base":"Golpe que libera energía interior.","efecto":"Recupera el 20% del HP máximo propio."}','{"tipo":"regeneracion","porcentaje":20,"cooldown":0}',NULL),(28,'dominio',NULL,'muyRaro','Dominio','especial',55,90,'{"base":"Ataque de presencia imponente.","efecto":"30% de debuff acumulable en Defensa Esp. rival (−5%/stack, máx 3, 2 turnos)."}','{"tipo":"debuff","stat":"Defensa Esp.","reduccion":5,"turnos":2,"probabilidad":30,"acumulable":true,"stacksMax":3}',NULL),(29,'presencia-absoluta',NULL,'legendario','Presencia Absoluta','especial',65,85,'{"base":"El poder de una leyenda condensado en un golpe.","efecto":"40% de reducir la Defensa Esp. rival −25% por 2 turnos."}','{"tipo":"debuff","stat":"Defensa Esp.","reduccion":25,"turnos":2,"probabilidad":40,"acumulable":false}',NULL),(30,'coraza-liquida','💧 Agua',NULL,'Coraza Líquida','fisico',40,90,'{"base":"Golpe que usa la Defensa como fuerza de impacto.","efecto":"30% de reducir el Ataque rival −15% por 2 turnos."}','{"tipo":"debuff","stat":"Ataque","reduccion":15,"turnos":2,"probabilidad":30,"acumulable":false}','Defensa'),(31,'marea-vital','💧 Agua',NULL,'Marea Vital','estado',NULL,NULL,'{"base":"Oleada de energía acuática restauradora.","efecto":"Recupera el 25% del HP máximo propio. Cooldown: 2 turnos."}','{"tipo":"regeneracion","porcentaje":25,"cooldown":2}',NULL),(32,'chorro-resistente','💧 Agua',NULL,'Chorro Resistente','fisico',38,100,'{"base":"Disparo concentrado que aprovecha la solidez del cuerpo. Sin efectos adicionales."}',NULL,'Defensa'),(33,'parapeto-vegetal','🌿 Planta',NULL,'Parapeto Vegetal','fisico',35,90,'{"base":"Golpe defensivo que usa la propia resistencia.","efecto":"30% de reducir la Defensa rival −15% por 2 turnos."}','{"tipo":"debuff","stat":"Defensa","reduccion":15,"turnos":2,"probabilidad":30,"acumulable":false}','Defensa'),(34,'drenaje-raiz','🌿 Planta',NULL,'Drenaje Raíz','fisico',40,100,'{"base":"Golpe que drena energía usando la solidez propia. Sin efectos adicionales."}',NULL,'Defensa'),(35,'verdor-restaurador','🌿 Planta',NULL,'Verdor Restaurador','estado',NULL,NULL,'{"base":"El Pokémon canaliza energía vital.","efecto":"Recupera el 20% del HP máximo propio. Cooldown: 2 turnos."}','{"tipo":"regeneracion","porcentaje":20,"cooldown":2}',NULL),(36,'golpe-petreo','🪨 Tierra',NULL,'Golpe Pétreo','fisico',35,90,'{"base":"Impacto telúrico que usa la Defensa como fuerza.","efecto":"25% de reducir la Defensa rival −15% por 2 turnos."}','{"tipo":"debuff","stat":"Defensa","reduccion":15,"turnos":2,"probabilidad":25,"acumulable":false}','Defensa'),(37,'sismo-defensivo','🪨 Tierra',NULL,'Sismo Defensivo','fisico',40,85,'{"base":"Sacudida del suelo usando la propia masa corporal.","efecto":"30% de reducir la Velocidad rival −20% por 2 turnos."}','{"tipo":"debuff","stat":"Velocidad","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}','Defensa'),(38,'muro-vivo','🪨 Tierra',NULL,'Muro Vivo','estado',NULL,NULL,'{"base":"El Pokémon canaliza su resistencia como escudo vital.","efecto":"Recupera el 25% del HP máximo propio. Cooldown: 2 turnos."}','{"tipo":"regeneracion","porcentaje":25,"cooldown":2}',NULL);
+/*!40000 ALTER TABLE `habilidades_ascension_catalogo` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `habilidades_catalogo`
 --
 
@@ -576,11 +610,11 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_partida_insert
-AFTER INSERT ON partidas
-FOR EACH ROW
-BEGIN
-  INSERT INTO partidas_log (partida_id, accion) VALUES (NEW.id, 'creada');
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_partida_insert
+AFTER INSERT ON partidas
+FOR EACH ROW
+BEGIN
+  INSERT INTO partidas_log (partida_id, accion) VALUES (NEW.id, 'creada');
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -596,11 +630,11 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_partida_delete
-AFTER DELETE ON partidas
-FOR EACH ROW
-BEGIN
-  INSERT INTO partidas_log (partida_id, accion) VALUES (OLD.id, 'eliminada');
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_partida_delete
+AFTER DELETE ON partidas
+FOR EACH ROW
+BEGIN
+  INSERT INTO partidas_log (partida_id, accion) VALUES (OLD.id, 'eliminada');
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -737,20 +771,20 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_pokemon_equipo
-BEFORE INSERT ON pokemon_partida
-FOR EACH ROW
-BEGIN
-  DECLARE total_equipo INT;
-  IF NEW.en_equipo = 1 THEN
-    SELECT COUNT(*) INTO total_equipo
-    FROM pokemon_partida
-    WHERE partida_id = NEW.partida_id AND en_equipo = 1;
-    IF total_equipo >= 6 THEN
-      SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El equipo ya tiene 6 pokémon';
-    END IF;
-  END IF;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER before_pokemon_equipo
+BEFORE INSERT ON pokemon_partida
+FOR EACH ROW
+BEGIN
+  DECLARE total_equipo INT;
+  IF NEW.en_equipo = 1 THEN
+    SELECT COUNT(*) INTO total_equipo
+    FROM pokemon_partida
+    WHERE partida_id = NEW.partida_id AND en_equipo = 1;
+    IF total_equipo >= 6 THEN
+      SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El equipo ya tiene 6 pokémon';
+    END IF;
+  END IF;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -766,14 +800,14 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_pokemon_nivel
-AFTER UPDATE ON pokemon_partida
-FOR EACH ROW
-BEGIN
-  IF NEW.nivel > OLD.nivel THEN
-    INSERT INTO pokemon_nivel_log (partida_id, pokemon_uid, nivel_antes, nivel_despues)
-    VALUES (NEW.partida_id, NEW.uid, OLD.nivel, NEW.nivel);
-  END IF;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER after_pokemon_nivel
+AFTER UPDATE ON pokemon_partida
+FOR EACH ROW
+BEGIN
+  IF NEW.nivel > OLD.nivel THEN
+    INSERT INTO pokemon_nivel_log (partida_id, pokemon_uid, nivel_antes, nivel_despues)
+    VALUES (NEW.partida_id, NEW.uid, OLD.nivel, NEW.nivel);
+  END IF;
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -895,6 +929,71 @@ SET character_set_client = utf8;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Dumping routines for database 'practica2'
+--
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `crear_tabla` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `crear_tabla`(IN nombre_tabla VARCHAR(64))
+BEGIN
+  SET @sql = CONCAT(
+    'CREATE TABLE IF NOT EXISTS ', nombre_tabla, ' (',
+    '  id            INT NOT NULL AUTO_INCREMENT,',
+    '  placeholder_1 VARCHAR(100) NOT NULL,',
+    '  placeholder_2 VARCHAR(100) NOT NULL,',
+    '  placeholder_3 VARCHAR(100) NOT NULL,',
+    '  PRIMARY KEY (id)',
+    ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4'
+  );
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_eliminar_partida` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_eliminar_partida`(IN p_id INT)
+BEGIN
+  DECLARE EXIT HANDLER FOR SQLEXCEPTION
+  BEGIN
+    ROLLBACK;
+    RESIGNAL;
+  END;
+
+  START TRANSACTION;
+    DELETE FROM entrenamiento_sesiones WHERE partida_id = p_id;
+    DELETE FROM batallas               WHERE partida_id = p_id;
+    DELETE FROM inventario_partida     WHERE partida_id = p_id;
+    DELETE FROM pokemon_partida        WHERE partida_id = p_id;
+    DELETE FROM partidas               WHERE id         = p_id;
+  COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
 -- Final view structure for view `vista_entrenadores_pokemon`
 --
 
@@ -921,4 +1020,4 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-07 12:11:34
+-- Dump completed on 2026-08-10 12:26:30

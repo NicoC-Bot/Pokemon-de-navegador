@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import StartScreen from './components/StartScreen.vue'
 import TrainerCreate from './components/TrainerCreate.vue'
 import StarterSelection from './components/StarterSelection.vue'
@@ -10,6 +10,8 @@ import { materiales, pokemonesWild } from './data/pokemonesExploracion.js'
 import { clases } from './data/clases.js'
 import { obtenerPartidaCompleta, guardarPartida as apiGuardarPartida, actualizarPartida as apiActualizarPartida } from './api/partidas.js'
 import { registrarSesiones } from './api/entrenamientos.js'
+import { fetchCatalogoHabilidades } from './api/habilidades.js'
+import { generarHabilidadesAscension, obtenerHabilidadRareza, resolverHabilidades } from './utils/generarHabilidades.js'
 
 const enStartScreen    = ref(true)
 const cargandoPartida  = ref(false)
@@ -27,6 +29,15 @@ const peDescanso           = ref(0)
 const capturaCooldownHasta = ref(null)
 const capturasDisponibles  = ref(3)
 const inventario           = ref(Object.fromEntries(materiales.map(m => [m.id, 0])))
+const catalogoHabilidades  = ref([])
+
+onMounted(async () => {
+  try {
+    catalogoHabilidades.value = await fetchCatalogoHabilidades()
+  } catch (e) {
+    console.error('No se pudo cargar el catálogo de habilidades:', e)
+  }
+})
 
 const INVENTARIO_MAX = 2000
 
@@ -48,9 +59,14 @@ function recibirCompañero(pokemon) {
 }
 
 function confirmarInicio() {
-  const pokemonListo = prepararPokemon(compañero.value, entrenador.value.clase)
-  equipo.value      = [pokemonListo]
-  capturados.value  = [pokemonListo]
+  const listo   = prepararPokemon(compañero.value, entrenador.value.clase)
+  const conHabs = {
+    ...listo,
+    habilidadesAscension: generarHabilidadesAscension(listo.elemento, catalogoHabilidades.value),
+    habilidadRareza:      obtenerHabilidadRareza(listo.rareza, catalogoHabilidades.value),
+  }
+  equipo.value        = [conHabs]
+  capturados.value    = [conHabs]
   juegoIniciado.value = true
 }
 
@@ -67,11 +83,14 @@ function actualizarPokemon({ uid, datos }) {
 }
 
 function capturarPokemon(pokemon) {
-  const pokemonListo = prepararPokemon(pokemon, entrenador.value.clase)
-  capturados.value = [...capturados.value, pokemonListo]
-  if (equipo.value.length < 6) {
-    equipo.value = [...equipo.value, pokemonListo]
+  const listo   = prepararPokemon(pokemon, entrenador.value.clase)
+  const conHabs = {
+    ...listo,
+    habilidadesAscension: generarHabilidadesAscension(pokemon.elemento, catalogoHabilidades.value),
+    habilidadRareza:      obtenerHabilidadRareza(pokemon.rareza, catalogoHabilidades.value),
   }
+  capturados.value = [...capturados.value, conHabs]
+  if (equipo.value.length < 6) equipo.value = [...equipo.value, conHabs]
 }
 
 function actualizarEquipo(nuevoEquipo) {
@@ -129,22 +148,27 @@ async function cargarPartida(partida) {
       const statsDB   = (p.stats && p.stats.HP !== undefined) ? p.stats : null
       const statsBase = base.stats ?? null
       const stats     = statsDB ?? statsBase ?? {}
+      const { asc, rareza: habRareza } = resolverHabilidades(
+        p.habilidades_ascension, p.habilidad_rareza, catalogoHabilidades.value
+      )
       return {
-        uid:            p.uid,
-        nombre:         p.nombre,
-        elemento:       p.elemento,
-        colorElemento:  base.colorElemento ?? '#888888',
-        descripcion:    base.descripcion   ?? '',
-        habilidades:    base.habilidades   ?? [],
-        rareza:         p.rareza,
-        nivel:          p.nivel,
-        nivelAscension: p.nivel_ascension,
-        hpActual:       p.hp_actual,
-        pe:             p.pe,
+        uid:                  p.uid,
+        nombre:               p.nombre,
+        elemento:             p.elemento,
+        colorElemento:        base.colorElemento ?? '#888888',
+        descripcion:          base.descripcion   ?? '',
+        habilidades:          base.habilidades   ?? [],
+        rareza:               p.rareza,
+        nivel:                p.nivel,
+        nivelAscension:       p.nivel_ascension,
+        hpActual:             p.hp_actual,
+        pe:                   p.pe,
         stats,
-        statsBase:      statsBase ?? stats,
-        xp:             0,
-        id:             base.id ?? '',
+        statsBase:            statsBase ?? stats,
+        xp:                   0,
+        id:                   base.id ?? '',
+        habilidadesAscension: asc,
+        habilidadRareza:      habRareza,
       }
     }
 
@@ -185,17 +209,19 @@ async function guardarPartida(datos) {
     const pokemonArray = capturados.value.map(p => {
       const slotEquipo = equipo.value.findIndex(e => e.uid === p.uid)
       return {
-        uid:             p.uid,
-        nombre:          p.nombre,
-        elemento:        p.elemento,
-        rareza:          p.rareza,
-        nivel:           p.nivel ?? 1,
-        nivel_ascension: p.nivelAscension ?? 0,
-        hp_actual:       p.hpActual ?? p.stats.HP,
-        pe:              p.pe ?? 100,
-        stats:           p.stats,
-        en_equipo:       slotEquipo !== -1,
-        slot_equipo:     slotEquipo !== -1 ? slotEquipo : null,
+        uid:                   p.uid,
+        nombre:                p.nombre,
+        elemento:              p.elemento,
+        rareza:                p.rareza,
+        nivel:                 p.nivel ?? 1,
+        nivel_ascension:       p.nivelAscension ?? 0,
+        hp_actual:             p.hpActual ?? p.stats.HP,
+        pe:                    p.pe ?? 100,
+        stats:                 p.stats,
+        habilidades_ascension: p.habilidadesAscension?.map(h => h.identificador) ?? [],
+        habilidad_rareza:      p.habilidadRareza?.identificador ?? null,
+        en_equipo:             slotEquipo !== -1,
+        slot_equipo:           slotEquipo !== -1 ? slotEquipo : null,
       }
     })
 
@@ -241,10 +267,9 @@ function actualizarHpPostCombate(hpData) {
 }
 
 function completarDescanso() {
-  equipo.value = equipo.value.map(p => ({
-    ...p,
-    pe: Math.min(100, p.pe + peDescanso.value)
-  }))
+  const recuperar = p => ({ ...p, pe: Math.min(100, p.pe + peDescanso.value) })
+  equipo.value     = equipo.value.map(recuperar)
+  capturados.value = capturados.value.map(recuperar)
   ultimoDescanso.value   = Date.now()
   descansandoHasta.value = null
   peDescanso.value       = 0

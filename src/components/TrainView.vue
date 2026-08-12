@@ -20,6 +20,9 @@ const subiNivel  = ref(false)
 const contadores = ref(
   Object.fromEntries(Object.keys(props.pokemon.stats).map(k => [k, 0]))
 )
+const historial = ref(
+  Object.fromEntries(Object.keys(props.pokemon.stats).map(k => [k, []]))
+)
 
 const xpNecesaria        = computed(() => xpParaNivel(nivel.value))
 const xpPorcentaje       = computed(() => Math.min(100, (xp.value / xpNecesaria.value) * 100))
@@ -37,7 +40,9 @@ function puedeEntrenar(valorStat) {
 function entrenar(nombreStat) {
   if (!puedeEntrenar(stats.value[nombreStat])) return
   confirmado.value = false
-  stats.value[nombreStat] = Math.min(150, stats.value[nombreStat] + aplicarBono(ganancia(), obtenerBonus(nombreStat)))
+  const antes = stats.value[nombreStat]
+  stats.value[nombreStat] = Math.min(150, antes + aplicarBono(ganancia(), obtenerBonus(nombreStat)))
+  historial.value[nombreStat].push(stats.value[nombreStat] - antes)
   pe.value -= ganancia()
   contadores.value[nombreStat]++
   haycambios.value = true
@@ -46,7 +51,7 @@ function entrenar(nombreStat) {
 function disminuir(nombreStat) {
   if (contadores.value[nombreStat] <= 0) return
   confirmado.value = false
-  stats.value[nombreStat] -= aplicarBono(ganancia(), obtenerBonus(nombreStat))
+  stats.value[nombreStat] -= historial.value[nombreStat].pop()
   pe.value += ganancia()
   contadores.value[nombreStat]--
   haycambios.value = Object.values(contadores.value).some(c => c > 0)
@@ -100,6 +105,7 @@ function confirmar() {
   haycambios.value = false
   for (const k in contadores.value) {
     contadores.value[k] = 0
+    historial.value[k] = []
   }
 }
 

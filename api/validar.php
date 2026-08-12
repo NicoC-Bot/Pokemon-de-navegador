@@ -34,3 +34,19 @@ function int_get(string $param): ?int {
     if (!ctype_digit((string) $_GET[$param])) throw new InvalidArgumentException("Parámetro GET inválido: {$param}");
     return (int) $_GET[$param];
 }
+
+function str_opt(array $d, string $campo, int $max = 255): ?string {
+    $v = $d[$campo] ?? null;
+    if ($v === null || $v === '') return null;
+    $v = trim((string) $v);
+    if (strlen($v) > $max) throw new InvalidArgumentException("'{$campo}' supera {$max} caracteres");
+    return $v;
+}
+
+function arr_str(array $d, string $campo, int $maxItem = 50): array {
+    $arr = arr_req($d, $campo);
+    foreach ($arr as $i => $v)
+        if (!is_string($v) || strlen($v) > $maxItem)
+            throw new InvalidArgumentException("Item [{$i}] inválido en '{$campo}'");
+    return $arr;
+}

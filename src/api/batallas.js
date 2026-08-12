@@ -1,11 +1,8 @@
-const BASE = import.meta.env.VITE_API_BASE ?? '/api'
+const KEY = 'practica2_batallas'
 
-export async function registrarBatalla({ partida_id, estado, resultado, turnos_totales, participantes, turnos }) {
-  const res = await fetch(`${BASE}/batallas.php`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ partida_id, estado, resultado, turnos_totales, participantes, turnos }),
-  })
-  if (!res.ok) throw new Error('Error al registrar batalla')
-  return res.json()
+export async function registrarBatalla({ partida_id, estado, resultado, turnos_totales }) {
+  const lista = JSON.parse(localStorage.getItem(KEY) ?? '[]')
+  lista.push({ partida_id, estado, resultado, turnos_totales, fecha: Date.now() })
+  localStorage.setItem(KEY, JSON.stringify(lista))
+  return { ok: true }
 }

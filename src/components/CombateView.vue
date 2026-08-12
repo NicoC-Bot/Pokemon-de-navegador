@@ -166,12 +166,17 @@ function statEfectivo(estado, nombre) {
 }
 
 function calcularDaño(atacante, defensor, hab) {
-  const atk = hab.tipo === 'especial'
-    ? statEfectivo(atacante, 'Ataque Esp.')
-    : statEfectivo(atacante, 'Ataque')
-  const def = hab.tipo === 'especial'
-    ? statEfectivo(defensor, 'Defensa Esp.')
-    : statEfectivo(defensor, 'Defensa')
+  let atk, def
+  if (hab.escala === 'Defensa') {
+    atk = statEfectivo(atacante, 'Defensa')
+    def = statEfectivo(defensor, 'Defensa')
+  } else if (hab.tipo === 'especial') {
+    atk = statEfectivo(atacante, 'Ataque Esp.')
+    def = statEfectivo(defensor, 'Defensa Esp.')
+  } else {
+    atk = statEfectivo(atacante, 'Ataque')
+    def = statEfectivo(defensor, 'Defensa')
+  }
 
   let potencia = hab.potencia ?? 0
   if (hab.efecto?.tipo === 'condicion-hp' &&

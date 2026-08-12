@@ -288,7 +288,7 @@ h2 {
   font-size: 0.9rem; /* tamaño del mensaje de encuentro */
   font-weight: bold; /* negrita para el anuncio del encuentro */
   margin-bottom: 8px; /* separación inferior antes de la tarjeta */
-  color: #333; /* color oscuro del título de encuentro */
+  color: #eee;
 }
 
 /* Card Pokémon */
@@ -387,13 +387,14 @@ h2 {
   padding: 16px 20px; /* relleno interno de la tarjeta de material */
   border: 2px solid #e0e0e0; /* borde gris de la tarjeta */
   border-radius: 14px; /* esquinas redondeadas de la tarjeta */
+  background: #e8e8e8;
 }
 
 .material-icono { font-size: 2rem; flex-shrink: 0; } /* icono grande sin reducirse */
 
 .material-info { display: flex; flex-direction: column; gap: 4px; } /* info apilada en columna */
 .material-nombre { font-weight: bold; font-size: 1rem; color: #222; } /* nombre en negrita y oscuro */
-.material-desc { font-size: 0.85rem; color: #666; } /* descripción pequeña y gris */
+.material-desc { font-size: 0.85rem; color: #555; }
 
 .recoger-accion { margin-top: 10px; } /* separación superior del botón recoger */
 

@@ -20,15 +20,16 @@ if ($metodo === 'GET') {
                 'SELECT COUNT(b.id) AS total_batallas,
                         SUM(CASE WHEN br.nombre = ? THEN 1 ELSE 0 END) AS victorias,
                         SUM(CASE WHEN br.nombre = ? THEN 1 ELSE 0 END) AS derrotas,
-                        SUM(CASE WHEN br.nombre = ? THEN 1 ELSE 0 END) AS huidas,
+                        SUM(CASE WHEN be.nombre = \'abandono\' THEN 1 ELSE 0 END) AS huidas,
                         ROUND(AVG(b.turnos_totales), 1) AS turnos_promedio
                  FROM partidas p
-                 LEFT JOIN batallas b  ON b.partida_id  = p.id
-                 LEFT JOIN batalla_resultados br ON br.id = b.resultado_id
+                 LEFT JOIN batallas b             ON b.partida_id = p.id
+                 LEFT JOIN batalla_resultados br  ON br.id = b.resultado_id
+                 LEFT JOIN batalla_estados     be ON be.id = b.estado_id
                  WHERE p.id = ?
                  GROUP BY p.id'
             );
-            $stmt->execute(['victoria', 'derrota', 'huida', $id]);
+            $stmt->execute(['victoria', 'derrota', $id]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$row) {
                 echo json_encode(['total_batallas' => 0, 'victorias' => 0, 'derrotas' => 0, 'huidas' => 0, 'turnos_promedio' => null]);
@@ -80,27 +81,24 @@ if ($metodo === 'GET') {
             'capturas_disponibles'   => (int) $partida['capturas_disponibles'],
         ];
 
-        // JOIN para recuperar nombre, elemento y rareza del catálogo
         $stmt = $pdo->prepare(
-            'SELECT pp.uid, pc.nombre, e.nombre AS elemento, rt.nombre AS rareza,
-                    pp.nivel, pp.nivel_ascension, pp.hp_actual, pp.pe, pp.stats,
-                    pp.en_equipo, pp.slot_equipo
-             FROM pokemon_partida pp
-             JOIN pokemon_catalogo pc ON pc.id = pp.pokemon_id
-             JOIN elementos        e  ON e.id  = pc.elemento_id
-             JOIN rareza_tipos     rt ON rt.id = pc.rareza_id
-             WHERE pp.partida_id = ?'
+            'SELECT uid, nombre, elemento, rareza,
+                    nivel, nivel_ascension, hp_actual, pe, stats,
+                    habilidades_ascension, habilidad_rareza, en_equipo, slot_equipo
+             FROM pokemon_partida WHERE partida_id = ?'
         );
         $stmt->execute([$id]);
         $pokemon = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($pokemon as &$p) {
-            $p['stats']           = json_decode($p['stats'], true);
-            $p['en_equipo']       = (bool) $p['en_equipo'];
-            $p['slot_equipo']     = $p['slot_equipo'] !== null ? (int) $p['slot_equipo'] : null;
-            $p['nivel']           = (int) $p['nivel'];
-            $p['nivel_ascension'] = (int) $p['nivel_ascension'];
-            $p['hp_actual']       = (int) $p['hp_actual'];
-            $p['pe']              = (int) $p['pe'];
+            $p['stats']                 = json_decode($p['stats'], true);
+            $p['habilidades_ascension'] = $p['habilidades_ascension'] !== null
+                ? json_decode($p['habilidades_ascension'], true) : [];
+            $p['en_equipo']             = (bool) $p['en_equipo'];
+            $p['slot_equipo']           = $p['slot_equipo'] !== null ? (int) $p['slot_equipo'] : null;
+            $p['nivel']                 = (int) $p['nivel'];
+            $p['nivel_ascension']       = (int) $p['nivel_ascension'];
+            $p['hp_actual']             = (int) $p['hp_actual'];
+            $p['pe']                    = (int) $p['pe'];
         }
 
         $stmt = $pdo->prepare(
@@ -198,16 +196,31 @@ elseif ($metodo === 'POST') {
 
         $stmt = $pdo->prepare(
             'INSERT INTO pokemon_partida
-             (partida_id, uid, pokemon_id, nivel, nivel_ascension, hp_actual, pe, stats, en_equipo, slot_equipo)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+             (partida_id, uid, nombre, elemento, rareza, pokemon_id,
+              nivel, nivel_ascension, hp_actual, pe, stats,
+              habilidades_ascension, habilidad_rareza, en_equipo, slot_equipo)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         foreach (arr_req($body, 'pokemon') as $p) {
-            $pokemonId = $catPokemon[str_req($p, 'nombre', 100)] ?? null;
-            if ($pokemonId === null) throw new Exception("Pokemon no encontrado en catálogo: {$p['nombre']}");
+            $nombre    = str_req($p, 'nombre', 100);
+            $pokemonId = $catPokemon[$nombre] ?? null;
+            if ($pokemonId === null) throw new InvalidArgumentException("Pokemon no encontrado en catálogo: {$nombre}");
             $stmt->execute([
-                $partidaId, str_req($p, 'uid', 50), $pokemonId,
-                int_req($p, 'nivel'), int_req($p, 'nivel_ascension'), int_req($p, 'hp_actual'), int_req($p, 'pe'),
-                json_encode(arr_req($p, 'stats')), bool_req($p, 'en_equipo') ? 1 : 0, int_opt($p, 'slot_equipo'),
+                $partidaId,
+                str_req($p, 'uid', 50),
+                $nombre,
+                str_req($p, 'elemento', 30),
+                str_req($p, 'rareza', 20),
+                $pokemonId,
+                int_req($p, 'nivel'),
+                int_req($p, 'nivel_ascension'),
+                int_req($p, 'hp_actual'),
+                int_req($p, 'pe'),
+                json_encode(arr_req($p, 'stats')),
+                json_encode(arr_str($p, 'habilidades_ascension', 40)),
+                str_opt($p, 'habilidad_rareza', 40),
+                bool_req($p, 'en_equipo') ? 1 : 0,
+                int_opt($p, 'slot_equipo'),
             ]);
         }
 
@@ -215,13 +228,17 @@ elseif ($metodo === 'POST') {
         $stmt = $pdo->prepare('INSERT INTO inventario_partida (partida_id, material_id, cantidad) VALUES (?, ?, ?)');
         foreach (arr_req($body, 'inventario') as $inv) {
             $materialId = $catMateriales[str_req($inv, 'material_id', 50)] ?? null;
-            if ($materialId === null) throw new Exception("Material no encontrado: {$inv['material_id']}");
+            if ($materialId === null) throw new InvalidArgumentException("Material no encontrado: {$inv['material_id']}");
             $stmt->execute([$partidaId, $materialId, int_req($inv, 'cantidad')]);
         }
 
         $pdo->commit();
         echo json_encode(['id' => $partidaId]);
 
+    } catch (InvalidArgumentException $ex) {
+        $pdo->rollBack();
+        http_response_code(400);
+        echo json_encode(['error' => $ex->getMessage()]);
     } catch (Exception $ex) {
         $pdo->rollBack();
         http_response_code(500);
@@ -278,16 +295,31 @@ elseif ($metodo === 'PUT') {
 
         $stmt = $pdo->prepare(
             'INSERT INTO pokemon_partida
-             (partida_id, uid, pokemon_id, nivel, nivel_ascension, hp_actual, pe, stats, en_equipo, slot_equipo)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+             (partida_id, uid, nombre, elemento, rareza, pokemon_id,
+              nivel, nivel_ascension, hp_actual, pe, stats,
+              habilidades_ascension, habilidad_rareza, en_equipo, slot_equipo)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         foreach (arr_req($body, 'pokemon') as $p) {
-            $pokemonId = $catPokemon[str_req($p, 'nombre', 100)] ?? null;
-            if ($pokemonId === null) throw new Exception("Pokemon no encontrado en catálogo: {$p['nombre']}");
+            $nombre    = str_req($p, 'nombre', 100);
+            $pokemonId = $catPokemon[$nombre] ?? null;
+            if ($pokemonId === null) throw new InvalidArgumentException("Pokemon no encontrado en catálogo: {$nombre}");
             $stmt->execute([
-                $id, str_req($p, 'uid', 50), $pokemonId,
-                int_req($p, 'nivel'), int_req($p, 'nivel_ascension'), int_req($p, 'hp_actual'), int_req($p, 'pe'),
-                json_encode(arr_req($p, 'stats')), bool_req($p, 'en_equipo') ? 1 : 0, int_opt($p, 'slot_equipo'),
+                $id,
+                str_req($p, 'uid', 50),
+                $nombre,
+                str_req($p, 'elemento', 30),
+                str_req($p, 'rareza', 20),
+                $pokemonId,
+                int_req($p, 'nivel'),
+                int_req($p, 'nivel_ascension'),
+                int_req($p, 'hp_actual'),
+                int_req($p, 'pe'),
+                json_encode(arr_req($p, 'stats')),
+                json_encode(arr_str($p, 'habilidades_ascension', 40)),
+                str_opt($p, 'habilidad_rareza', 40),
+                bool_req($p, 'en_equipo') ? 1 : 0,
+                int_opt($p, 'slot_equipo'),
             ]);
         }
 
@@ -298,13 +330,17 @@ elseif ($metodo === 'PUT') {
         $stmt = $pdo->prepare('INSERT INTO inventario_partida (partida_id, material_id, cantidad) VALUES (?, ?, ?)');
         foreach (arr_req($body, 'inventario') as $inv) {
             $materialId = $catMateriales[str_req($inv, 'material_id', 50)] ?? null;
-            if ($materialId === null) throw new Exception("Material no encontrado: {$inv['material_id']}");
+            if ($materialId === null) throw new InvalidArgumentException("Material no encontrado: {$inv['material_id']}");
             $stmt->execute([$id, $materialId, int_req($inv, 'cantidad')]);
         }
 
         $pdo->commit();
         echo json_encode(['ok' => true]);
 
+    } catch (InvalidArgumentException $ex) {
+        $pdo->rollBack();
+        http_response_code(400);
+        echo json_encode(['error' => $ex->getMessage()]);
     } catch (Exception $ex) {
         $pdo->rollBack();
         http_response_code(500);

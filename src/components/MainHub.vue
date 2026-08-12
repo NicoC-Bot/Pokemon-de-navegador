@@ -161,7 +161,7 @@ function actualizarPokemon(datos) {
       <!-- Vista: Entrenar -->
       <div v-else-if="vistaActual === 'entrenar'">
 
-        <div v-if="pokemonUid === null" class="seleccion-entrenar">
+        <div v-if="!pokemonSeleccionado" class="seleccion-entrenar">
           <button class="btn-volver" @click="vistaActual = 'hub'">← Volver</button>
           <p class="sel-titulo">¿Quién va a entrenar?</p>
           <button

@@ -31,6 +31,7 @@ DROP TABLE IF EXISTS pokemon_partida;
 DROP TABLE IF EXISTS partidas;
 DROP TABLE IF EXISTS entrenadores;
 DROP TABLE IF EXISTS materiales;
+DROP TABLE IF EXISTS habilidades_ascension_catalogo;
 DROP TABLE IF EXISTS habilidades_catalogo;
 DROP TABLE IF EXISTS pokemon_catalogo;
 DROP TABLE IF EXISTS clases_catalogo;
@@ -176,16 +177,146 @@ CREATE TABLE clases_catalogo (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO clases_catalogo VALUES
-  (1, 'fuego',    '🔥 Fuego',     '#e63946'),
-  (2, 'agua',     '💧 Agua',      '#4895ef'),
-  (3, 'planta',   '🌿 Planta',    '#2dc653'),
-  (4, 'electro',  '⚡ Eléctrico', '#f4d35e'),
-  (5, 'psiquico', '🧠 Psíquico',  '#9b5de5'),
-  (6, 'roca',     '🛡️ Roca',      '#8d6e63');
+  (1, 'fuego',    '🔥 Fuego',     '#e63946', '[{"nombre":"Ataque","valor":20},{"nombre":"Velocidad","valor":5},{"nombre":"Daño Físico","valor":20},{"nombre":"Ataque Esp.","valor":-10},{"nombre":"Defensa","valor":-15},{"nombre":"Daño Elemental","valor":-10},{"nombre":"Evasión","valor":-5},{"nombre":"HP","valor":0},{"nombre":"Defensa Esp.","valor":0}]'),
+  (2, 'agua',     '💧 Agua',      '#4895ef', '[{"nombre":"HP","valor":20},{"nombre":"Defensa Esp.","valor":10},{"nombre":"Daño Elemental","valor":15},{"nombre":"Evasión","valor":10},{"nombre":"Ataque","valor":-10},{"nombre":"Daño Físico","valor":-5},{"nombre":"Velocidad","valor":-5},{"nombre":"Defensa","valor":0},{"nombre":"Ataque Esp.","valor":0}]'),
+  (3, 'planta',   '🌿 Planta',    '#2dc653', '[{"nombre":"Defensa","valor":25},{"nombre":"Daño Elemental","valor":5},{"nombre":"Velocidad","valor":-15},{"nombre":"Ataque Esp.","valor":-5},{"nombre":"Evasión","valor":-5},{"nombre":"HP","valor":0},{"nombre":"Ataque","valor":0},{"nombre":"Daño Físico","valor":0},{"nombre":"Defensa Esp.","valor":0}]'),
+  (4, 'electro',  '⚡ Eléctrico', '#f4d35e', '[{"nombre":"Velocidad","valor":25},{"nombre":"Ataque","valor":5},{"nombre":"Daño Físico","valor":15},{"nombre":"Evasión","valor":25},{"nombre":"Defensa","valor":-15},{"nombre":"HP","valor":-10},{"nombre":"Ataque Esp.","valor":0},{"nombre":"Daño Elemental","valor":0},{"nombre":"Defensa Esp.","valor":0}]'),
+  (5, 'psiquico', '🧠 Psíquico',  '#9b5de5', '[{"nombre":"Ataque Esp.","valor":20},{"nombre":"Defensa Esp.","valor":10},{"nombre":"Daño Elemental","valor":25},{"nombre":"Evasión","valor":15},{"nombre":"Ataque","valor":-15},{"nombre":"Defensa","valor":-5},{"nombre":"Daño Físico","valor":-20},{"nombre":"HP","valor":0},{"nombre":"Velocidad","valor":0}]'),
+  (6, 'roca',     '🛡️ Roca',      '#8d6e63', '[{"nombre":"Defensa","valor":25},{"nombre":"HP","valor":10},{"nombre":"Daño Físico","valor":10},{"nombre":"Velocidad","valor":-20},{"nombre":"Ataque Esp.","valor":-15},{"nombre":"Daño Elemental","valor":-15},{"nombre":"Evasión","valor":-20},{"nombre":"Ataque","valor":0},{"nombre":"Defensa Esp.","valor":0}]');
 
 -- =============================================================
 --  PARTE 2 — TABLAS CATÁLOGO
 -- =============================================================
+
+CREATE TABLE habilidades_ascension_catalogo (
+  id            SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  identificador VARCHAR(40)       NOT NULL,
+  elemento      VARCHAR(30)       NULL DEFAULT NULL,
+  rareza        VARCHAR(20)       NULL DEFAULT NULL,
+  nombre        VARCHAR(100)      NOT NULL,
+  tipo          VARCHAR(20)       NOT NULL,
+  potencia      TINYINT UNSIGNED  NULL DEFAULT NULL,
+  `precision`   TINYINT UNSIGNED  NULL DEFAULT NULL,
+  descripcion   JSON              NOT NULL,
+  efecto        JSON              NULL DEFAULT NULL,
+  escala        VARCHAR(20)       NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_identificador (identificador)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO habilidades_ascension_catalogo
+  (identificador, elemento, rareza, nombre, tipo, potencia, `precision`, descripcion, efecto)
+VALUES
+-- 🔥 Fuego
+('golpe-abrasador',   '🔥 Fuego', NULL, 'Golpe Abrasador',   'fisico',   55, 90,
+ '{"base":"Impacto cargado de fuego.","efecto":"30% de reducir la Defensa rival −20% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Defensa","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}'),
+('frenesi-igneo',     '🔥 Fuego', NULL, 'Frenesí Ígneo',     'fisico',   40, 100,
+ '{"base":"Golpe veloz en llamas.","efecto":"50% de quemar al rival, reduciendo su Ataque 15% por 2 turnos."}',
+ '{"tipo":"quemadura","stat":"Ataque","reduccion":15,"turnos":2,"probabilidad":50,"acumulable":false}'),
+('brasa-impetuosa',   '🔥 Fuego', NULL, 'Brasa Impetuosa',   'fisico',   45, 100,
+ '{"base":"Golpe explosivo desde las brasas.","efecto":"Si el usuario tiene ≤50% HP, la potencia sube a 65."}',
+ '{"tipo":"condicion-hp","umbral":0.5,"potenciaBonus":20}'),
+-- ⚡ Eléctrico
+('sobrecarga',        '⚡ Eléctrico',NULL,'Sobrecarga',       'especial', 55, 90,
+ '{"base":"Explosión eléctrica masiva.","efecto":"40% de paralizar al rival, reduciendo su Velocidad −30% por 2 turnos."}',
+ '{"tipo":"paralisis","stat":"Velocidad","reduccion":30,"turnos":2,"probabilidad":40,"acumulable":false}'),
+('impulso-voltaico',  '⚡ Eléctrico',NULL,'Impulso Voltaico', 'fisico',   45, 100,
+ '{"base":"Golpe eléctrico que interrumpe.","efecto":"35% de reducir el Ataque rival −15% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Ataque","reduccion":15,"turnos":2,"probabilidad":35,"acumulable":false}'),
+('carga-estatica',    '⚡ Eléctrico',NULL,'Carga Estática',   'fisico',   35, 100,
+ '{"base":"Descarga rápida.","efecto":"50% de reducir la Velocidad rival −20% por 2 turnos."}',
+ '{"tipo":"paralisis","stat":"Velocidad","reduccion":20,"turnos":2,"probabilidad":50,"acumulable":false}'),
+-- 🌀 Viento
+('corte-aereo',       '🌀 Viento',NULL, 'Corte Aéreo',       'especial', 50, 90,
+ '{"base":"Hoja de viento cortante.","efecto":"30% de reducir la Velocidad rival −20% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Velocidad","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}'),
+('ventisca-esquiva',  '🌀 Viento',NULL, 'Ventisca Esquiva',  'especial', 45, 100,
+ '{"base":"Ráfaga defensiva.","efecto":"40% de esquivar el siguiente ataque recibido."}',
+ '{"tipo":"esquiva","probabilidad":40}'),
+('rafaga-precisa',    '🌀 Viento',NULL, 'Ráfaga Precisa',    'especial', 35, 100,
+ '{"base":"Viento concentrado.","efecto":"50% de esquivar el siguiente ataque recibido."}',
+ '{"tipo":"esquiva","probabilidad":50}'),
+-- 🌑 Oscuro
+('garra-umbral',      '🌑 Oscuro',NULL, 'Garra Umbral',      'fisico',   50, 90,
+ '{"base":"Zarpazo desde las sombras.","efecto":"35% de reducir la Defensa rival −15% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Defensa","reduccion":15,"turnos":2,"probabilidad":35,"acumulable":false}'),
+('pulso-oscuro',      '🌑 Oscuro',NULL, 'Pulso Oscuro',      'especial', 55, 85,
+ '{"base":"Onda de energía sombría.","efecto":"25% de reducir el Ataque Esp. rival −15% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Ataque Esp.","reduccion":15,"turnos":2,"probabilidad":25,"acumulable":false}'),
+('maldicion-sombria', '🌑 Oscuro',NULL, 'Maldición Sombría', 'estado',   NULL,NULL,
+ '{"base":"Corrupción mental.","efecto":"Debuff acumulable en Ataque Esp. rival (−5%/stack, máx 3, 2 turnos)."}',
+ '{"tipo":"debuff","stat":"Ataque Esp.","reduccion":5,"turnos":2,"probabilidad":100,"acumulable":true,"stacksMax":3}'),
+-- ✨ Luz
+('destello-sagrado',  '✨ Luz',   NULL, 'Destello Sagrado',  'especial', 55, 90,
+ '{"base":"Explosión de luz sagrada.","efecto":"30% de reducir la Defensa Esp. rival −20% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Defensa Esp.","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}'),
+('halo-protector',    '✨ Luz',   NULL, 'Halo Protector',    'especial', 35, 100,
+ '{"base":"Destello sanador.","efecto":"Recupera el 25% del HP máximo propio."}',
+ '{"tipo":"regeneracion","porcentaje":25,"cooldown":0}'),
+('rayo-cenital',      '✨ Luz',   NULL, 'Rayo Cenital',      'especial', 50, 100,
+ '{"base":"Rayo de luz pura.","efecto":"Si el usuario tiene ≤50% HP, la potencia sube a 80."}',
+ '{"tipo":"condicion-hp","umbral":0.5,"potenciaBonus":30}'),
+-- Por rareza (elemento = NULL)
+('golpe-fiel',        NULL, 'comun',      'Golpe Fiel',         'fisico',   30, 100,
+ '{"base":"Un golpe básico pero confiable. Sin efectos adicionales."}',
+ NULL),
+('tenacidad',         NULL, 'pocoComun',  'Tenacidad',          'fisico',   35, 100,
+ '{"base":"Golpe resistente.","efecto":"Si el usuario tiene ≤50% HP, la potencia sube a 60."}',
+ '{"tipo":"condicion-hp","umbral":0.5,"potenciaBonus":25}'),
+('fuerza-interior',   NULL, 'raro',       'Fuerza Interior',    'especial', 45, 100,
+ '{"base":"Golpe que libera energía interior.","efecto":"Recupera el 20% del HP máximo propio."}',
+ '{"tipo":"regeneracion","porcentaje":20,"cooldown":0}'),
+('dominio',           NULL, 'muyRaro',    'Dominio',            'especial', 55, 90,
+ '{"base":"Ataque de presencia imponente.","efecto":"30% de debuff acumulable en Defensa Esp. rival (−5%/stack, máx 3, 2 turnos)."}',
+ '{"tipo":"debuff","stat":"Defensa Esp.","reduccion":5,"turnos":2,"probabilidad":30,"acumulable":true,"stacksMax":3}'),
+('presencia-absoluta',NULL, 'legendario', 'Presencia Absoluta', 'especial', 65, 85,
+ '{"base":"El poder de una leyenda condensado en un golpe.","efecto":"40% de reducir la Defensa Esp. rival −25% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Defensa Esp.","reduccion":25,"turnos":2,"probabilidad":40,"acumulable":false}');
+
+-- 💧 Agua / 🌿 Planta / 🪨 Tierra — habilidades con escala en Defensa
+INSERT INTO habilidades_ascension_catalogo
+  (identificador, elemento, rareza, nombre, tipo, potencia, `precision`, descripcion, efecto, escala)
+VALUES
+-- 💧 Agua (Aquell)
+('coraza-liquida',    '💧 Agua',   NULL, 'Coraza Líquida',    'fisico', 40, 90,
+ '{"base":"Golpe que usa la Defensa como fuerza de impacto.","efecto":"30% de reducir el Ataque rival −15% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Ataque","reduccion":15,"turnos":2,"probabilidad":30,"acumulable":false}',
+ 'Defensa'),
+('marea-vital',       '💧 Agua',   NULL, 'Marea Vital',       'estado', NULL, NULL,
+ '{"base":"Oleada de energía acuática restauradora.","efecto":"Recupera el 25% del HP máximo propio. Cooldown: 2 turnos."}',
+ '{"tipo":"regeneracion","porcentaje":25,"cooldown":2}',
+ NULL),
+('chorro-resistente', '💧 Agua',   NULL, 'Chorro Resistente', 'fisico', 38, 100,
+ '{"base":"Disparo concentrado que aprovecha la solidez del cuerpo. Sin efectos adicionales."}',
+ NULL,
+ 'Defensa'),
+-- 🌿 Planta (Verdún)
+('parapeto-vegetal',  '🌿 Planta', NULL, 'Parapeto Vegetal',  'fisico', 35, 90,
+ '{"base":"Golpe defensivo que usa la propia resistencia.","efecto":"30% de reducir la Defensa rival −15% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Defensa","reduccion":15,"turnos":2,"probabilidad":30,"acumulable":false}',
+ 'Defensa'),
+('drenaje-raiz',      '🌿 Planta', NULL, 'Drenaje Raíz',      'fisico', 40, 100,
+ '{"base":"Golpe que drena energía usando la solidez propia. Sin efectos adicionales."}',
+ NULL,
+ 'Defensa'),
+('verdor-restaurador','🌿 Planta', NULL, 'Verdor Restaurador','estado', NULL, NULL,
+ '{"base":"El Pokémon canaliza energía vital.","efecto":"Recupera el 20% del HP máximo propio. Cooldown: 2 turnos."}',
+ '{"tipo":"regeneracion","porcentaje":20,"cooldown":2}',
+ NULL),
+-- 🪨 Tierra (Petrix)
+('golpe-petreo',      '🪨 Tierra', NULL, 'Golpe Pétreo',      'fisico', 35, 90,
+ '{"base":"Impacto telúrico que usa la Defensa como fuerza.","efecto":"25% de reducir la Defensa rival −15% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Defensa","reduccion":15,"turnos":2,"probabilidad":25,"acumulable":false}',
+ 'Defensa'),
+('sismo-defensivo',   '🪨 Tierra', NULL, 'Sismo Defensivo',   'fisico', 40, 85,
+ '{"base":"Sacudida del suelo usando la propia masa corporal.","efecto":"30% de reducir la Velocidad rival −20% por 2 turnos."}',
+ '{"tipo":"debuff","stat":"Velocidad","reduccion":20,"turnos":2,"probabilidad":30,"acumulable":false}',
+ 'Defensa'),
+('muro-vivo',         '🪨 Tierra', NULL, 'Muro Vivo',         'estado', NULL, NULL,
+ '{"base":"El Pokémon canaliza su resistencia como escudo vital.","efecto":"Recupera el 25% del HP máximo propio. Cooldown: 2 turnos."}',
+ '{"tipo":"regeneracion","porcentaje":25,"cooldown":2}',
+ NULL);
 
 CREATE TABLE pokemon_catalogo (
   id          INT UNSIGNED     NOT NULL AUTO_INCREMENT,
@@ -314,17 +445,22 @@ CREATE TABLE partidas (
 -- -------------------------------------------------------------
 
 CREATE TABLE pokemon_partida (
-  id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
-  partida_id      INT           NOT NULL,
-  uid             VARCHAR(64)   NOT NULL,
-  pokemon_id      INT UNSIGNED  NOT NULL,
-  nivel           TINYINT       NOT NULL DEFAULT 1,
-  nivel_ascension TINYINT       NOT NULL DEFAULT 0,
-  hp_actual       INT           NOT NULL,
-  pe              INT           NOT NULL DEFAULT 100,
-  stats           LONGTEXT      CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`stats`)),
-  en_equipo       TINYINT(1)    NOT NULL DEFAULT 0,
-  slot_equipo     TINYINT       NULL DEFAULT NULL,
+  id                    INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  partida_id            INT           NOT NULL,
+  uid                   VARCHAR(64)   NOT NULL,
+  nombre                VARCHAR(100)  NOT NULL DEFAULT '',
+  elemento              VARCHAR(30)   NOT NULL DEFAULT '',
+  rareza                VARCHAR(20)   NOT NULL DEFAULT '',
+  pokemon_id            INT UNSIGNED  NOT NULL,
+  nivel                 TINYINT       NOT NULL DEFAULT 1,
+  nivel_ascension       TINYINT       NOT NULL DEFAULT 0,
+  hp_actual             INT           NOT NULL,
+  pe                    INT           NOT NULL DEFAULT 100,
+  stats                 LONGTEXT      CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`stats`)),
+  habilidades_ascension LONGTEXT      CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL CHECK (json_valid(`habilidades_ascension`)),
+  habilidad_rareza      VARCHAR(40)   NULL DEFAULT NULL,
+  en_equipo             TINYINT(1)    NOT NULL DEFAULT 0,
+  slot_equipo           TINYINT       NULL DEFAULT NULL,
   PRIMARY KEY (id),
   CONSTRAINT fk_pokemon_partida FOREIGN KEY (partida_id) REFERENCES partidas        (id) ON DELETE CASCADE,
   CONSTRAINT fk_pp_catalogo     FOREIGN KEY (pokemon_id) REFERENCES pokemon_catalogo(id)
@@ -335,7 +471,7 @@ CREATE TABLE pokemon_partida (
 CREATE TABLE inventario_partida (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
   partida_id  INT          NOT NULL,
-  material_id VARCHAR(64)  NOT NULL,
+  material_id INT          NOT NULL,
   cantidad    INT          NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   UNIQUE KEY uq_partida_material (partida_id, material_id),

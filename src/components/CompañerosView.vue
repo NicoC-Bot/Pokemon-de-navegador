@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { rarezas, materiales, habilidadesAscension, COSTO_ASCENSION } from '../data/pokemonesExploracion.js'
+import { rarezas, materiales, COSTO_ASCENSION } from '../data/pokemonesExploracion.js'
 
 const props = defineProps({
   equipo:     Array,
@@ -162,6 +162,21 @@ function ascender(pokemon) {
   if (!mat) return
   emit('usar-material', { pokemonUid: pokemon.uid, materialId: mat.id, cantidad: COSTO_ASCENSION })
 }
+
+function gradoStat(pokemon, nombre) {
+  const base = pokemon.statsBase?.[nombre] ?? 0
+  if (base >= 57) return { letra: 'S', clase: 'grado-s' }
+  if (base >= 44) return { letra: 'A', clase: 'grado-a' }
+  if (base >= 33) return { letra: 'B', clase: 'grado-b' }
+  if (base >= 22) return { letra: 'C', clase: 'grado-c' }
+  return { letra: 'D', clase: 'grado-d' }
+}
+
+function escalaBadge(hab) {
+  if (!hab || hab.tipo === 'estado') return null
+  if (hab.escala === 'Defensa') return 'DEF'
+  return hab.tipo === 'especial' ? 'ATQ.ESP' : 'ATQ'
+}
 </script>
 
 <template>
@@ -280,42 +295,18 @@ function ascender(pokemon) {
             </div>
           </div>
 
-          <!-- Ascensión -->
+          <!-- Stats -->
           <div class="seccion">
-            <div class="seccion-titulo">Ascensión</div>
-
-            <div class="habilidades">
-              <div
-                v-for="hab in habilidadesAscension"
-                :key="hab.nivel"
-                class="habilidad"
-                :class="{ desbloqueada: (pokemon.nivelAscension ?? 0) >= hab.nivel }"
-              >
-                <span class="hab-icono">{{ (pokemon.nivelAscension ?? 0) >= hab.nivel ? '✦' : '○' }}</span>
-                <div class="hab-info">
-                  <span class="hab-nombre">{{ hab.nombre }}</span>
-                  <span class="hab-desc">{{ hab.descripcion }}</span>
+            <div class="seccion-titulo">Stats</div>
+            <div class="stats-grid">
+              <div v-for="(valor, nombre) in pokemon.stats" :key="nombre" class="stat-item">
+                <span class="stat-nombre">{{ nombre }}</span>
+                <div class="stat-valor-fila">
+                  <span class="stat-valor">{{ valor }}</span>
+                  <span class="stat-grado" :class="gradoStat(pokemon, nombre).clase">{{ gradoStat(pokemon, nombre).letra }}</span>
                 </div>
               </div>
             </div>
-
-            <div v-if="(pokemon.nivelAscension ?? 0) < 2" class="ascension-accion">
-              <div v-if="materialDeElemento(pokemon.elemento)" class="mat-requerido">
-                <span>{{ materialDeElemento(pokemon.elemento).icono }} {{ materialDeElemento(pokemon.elemento).nombre }}</span>
-                <span class="mat-disponible" :class="{ insuficiente: (inventario[materialDeElemento(pokemon.elemento).id] ?? 0) < COSTO_ASCENSION }">
-                  {{ inventario[materialDeElemento(pokemon.elemento).id] ?? 0 }} / {{ COSTO_ASCENSION }}
-                </span>
-              </div>
-              <button
-                class="btn-ascender"
-                :style="puedeAscender(pokemon) ? { backgroundColor: pokemon.colorElemento } : {}"
-                :disabled="!puedeAscender(pokemon)"
-                @click="ascender(pokemon)"
-              >
-                Ascender
-              </button>
-            </div>
-            <div v-else class="ascension-completa">✦ Ascensión completa</div>
           </div>
 
           <!-- Habilidades de combate -->
@@ -333,6 +324,7 @@ function ascender(pokemon) {
                     <span class="hab-nombre-combate">{{ hab.nombre }}</span>
                     <span class="hab-tipo" :class="'tipo-' + hab.tipo">{{ hab.tipo }}</span>
                     <span v-if="hab.potencia" class="hab-potencia">p.{{ hab.potencia }}</span>
+                    <span v-if="escalaBadge(hab)" class="hab-escala">{{ escalaBadge(hab) }}</span>
                   </div>
                   <span class="hab-chevron">{{ estaExpandida(pokemon.uid, hab.id) ? '▲' : '▼' }}</span>
                 </button>
@@ -342,6 +334,91 @@ function ascender(pokemon) {
               </div>
             </div>
             <div v-else class="sin-habilidades">Sin habilidades de combate.</div>
+          </div>
+
+          <!-- Habilidad de rareza -->
+          <div v-if="pokemon.habilidadRareza" class="seccion">
+            <div class="seccion-titulo">Habilidad de rareza</div>
+            <div class="habs-combate">
+              <div class="hab-combate">
+                <button
+                  class="hab-header"
+                  :style="{ borderColor: pokemon.colorElemento }"
+                  @click="toggleHabilidad(pokemon.uid, 'rareza')"
+                >
+                  <div class="hab-meta">
+                    <span class="asc-icono">★</span>
+                    <span class="hab-nombre-combate">{{ pokemon.habilidadRareza.nombre }}</span>
+                    <span class="hab-tipo" :class="'tipo-' + pokemon.habilidadRareza.tipo">{{ pokemon.habilidadRareza.tipo }}</span>
+                    <span v-if="pokemon.habilidadRareza.potencia" class="hab-potencia">p.{{ pokemon.habilidadRareza.potencia }}</span>
+                    <span v-if="escalaBadge(pokemon.habilidadRareza)" class="hab-escala">{{ escalaBadge(pokemon.habilidadRareza) }}</span>
+                  </div>
+                  <span class="hab-chevron">{{ estaExpandida(pokemon.uid, 'rareza') ? '▲' : '▼' }}</span>
+                </button>
+                <div v-if="estaExpandida(pokemon.uid, 'rareza')" class="hab-descripcion">
+                  {{ pokemon.habilidadRareza.descripcion.base }}
+                  <span v-if="pokemon.habilidadRareza.descripcion.efecto" class="hab-efecto-texto">{{ pokemon.habilidadRareza.descripcion.efecto }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Habilidades de ascensión -->
+          <div class="seccion">
+            <div class="seccion-titulo">Habilidades de ascensión</div>
+            <div class="habs-combate">
+              <template v-if="pokemon.habilidadesAscension?.length">
+                <div
+                  v-for="(hab, i) in pokemon.habilidadesAscension"
+                  :key="hab.identificador"
+                  class="hab-combate"
+                  :class="{ 'asc-bloqueada': (pokemon.nivelAscension ?? 0) <= i }"
+                >
+                  <button
+                    class="hab-header"
+                    :style="{ borderColor: (pokemon.nivelAscension ?? 0) > i ? pokemon.colorElemento : '#ddd' }"
+                    :disabled="(pokemon.nivelAscension ?? 0) <= i"
+                    @click="toggleHabilidad(pokemon.uid, hab.identificador)"
+                  >
+                    <div class="hab-meta">
+                      <span class="asc-icono">{{ (pokemon.nivelAscension ?? 0) > i ? '✦' : '○' }}</span>
+                      <span class="hab-nombre-combate">Asc. {{ i + 1 }} — {{ hab.nombre }}</span>
+                      <span class="hab-tipo" :class="'tipo-' + hab.tipo">{{ hab.tipo }}</span>
+                      <span v-if="hab.potencia" class="hab-potencia">p.{{ hab.potencia }}</span>
+                      <span v-if="escalaBadge(hab)" class="hab-escala">{{ escalaBadge(hab) }}</span>
+                    </div>
+                    <span class="hab-chevron">{{ estaExpandida(pokemon.uid, hab.identificador) ? '▲' : '▼' }}</span>
+                  </button>
+                  <div v-if="estaExpandida(pokemon.uid, hab.identificador)" class="hab-descripcion">
+                    {{ hab.descripcion.base }}
+                    <span v-if="hab.descripcion.efecto" class="hab-efecto-texto">{{ hab.descripcion.efecto }}</span>
+                  </div>
+                </div>
+              </template>
+              <div v-else class="sin-habilidades">Sin habilidades de ascensión.</div>
+            </div>
+          </div>
+
+          <!-- Ascensión (acción) -->
+          <div class="seccion">
+            <div class="seccion-titulo">Ascensión</div>
+            <div v-if="(pokemon.nivelAscension ?? 0) < 2" class="ascension-accion">
+              <div v-if="materialDeElemento(pokemon.elemento)" class="mat-requerido">
+                <span>{{ materialDeElemento(pokemon.elemento).icono }} {{ materialDeElemento(pokemon.elemento).nombre }}</span>
+                <span class="mat-disponible" :class="{ insuficiente: (inventario[materialDeElemento(pokemon.elemento).id] ?? 0) < COSTO_ASCENSION }">
+                  {{ inventario[materialDeElemento(pokemon.elemento).id] ?? 0 }} / {{ COSTO_ASCENSION }}
+                </span>
+              </div>
+              <button
+                class="btn-ascender"
+                :style="puedeAscender(pokemon) ? { backgroundColor: pokemon.colorElemento } : {}"
+                :disabled="!puedeAscender(pokemon)"
+                @click="ascender(pokemon)"
+              >
+                Ascender
+              </button>
+            </div>
+            <div v-else class="ascension-completa">✦ Ascensión completa</div>
           </div>
 
         </div>
@@ -622,19 +699,23 @@ h2 { font-size: 1.4rem; /* tamaño del título principal de la sección */ margi
 .habilidades { display: flex; /* lista de habilidades en flex */ flex-direction: column; /* habilidades apiladas verticalmente */ gap: 5px; /* separación entre habilidades de ascensión */ }
 
 .habilidad {
-  display: flex; /* ícono y texto de habilidad en fila */
-  align-items: flex-start; /* ícono alineado arriba con el texto */
-  gap: 6px; /* separación entre ícono e información de habilidad */
-  opacity: 0.4; /* habilidad bloqueada muy transparente */
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  opacity: 0.4;
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 6px 8px;
 }
 
 .habilidad.desbloqueada { opacity: 1; /* habilidad desbloqueada completamente visible */ }
 
 .hab-icono { font-size: 0.8rem; /* tamaño del ícono de habilidad */ margin-top: 2px; /* pequeño margen para alinear ícono con texto */ flex-shrink: 0; /* ícono no se comprime al reducir espacio */ }
 
-.hab-info { display: flex; /* nombre y descripción de habilidad en flex */ flex-direction: column; /* nombre sobre descripción en columna */ gap: 1px; /* separación mínima entre nombre y descripción */ }
-.hab-nombre { font-size: 0.78rem; /* tamaño del nombre de la habilidad */ font-weight: bold; /* nombre de habilidad en negrita */ color: #222; /* color oscuro del nombre de habilidad */ }
-.hab-desc   { font-size: 0.7rem; /* texto muy pequeño de la descripción */ color: #888; /* color gris de la descripción de habilidad */ }
+.hab-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.hab-nombre { font-size: 0.76rem; font-weight: bold; color: #222; }
+.hab-desc   { font-size: 0.69rem; color: #777; line-height: 1.3; }
+.hab-efecto { font-size: 0.65rem; color: #aaa; font-style: italic; line-height: 1.3; }
 
 /* Ascensión acción */
 .ascension-accion { display: flex; /* acción de ascensión en flex */ flex-direction: column; /* material y botón apilados verticalmente */ gap: 5px; /* separación entre material requerido y botón */ }
@@ -720,6 +801,15 @@ h2 { font-size: 1.4rem; /* tamaño del título principal de la sección */ margi
   margin-left: 2px; /* separación izquierda del valor de potencia */
 }
 
+.hab-escala {
+  font-size: 0.58rem;
+  font-weight: bold;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: #555;
+  color: #ddd;
+}
+
 .hab-chevron { font-size: 0.6rem; /* tamaño pequeño del ícono de flecha */ color: #aaa; /* color gris claro del ícono de expansión */ flex-shrink: 0; /* flecha no se comprime al reducir espacio */ }
 
 .hab-descripcion {
@@ -732,7 +822,64 @@ h2 { font-size: 1.4rem; /* tamaño del título principal de la sección */ margi
   border-radius: 0 0 6px 6px; /* solo esquinas inferiores redondeadas */
 }
 
-.sin-habilidades { font-size: 0.75rem; /* texto pequeño del aviso sin habilidades */ color: #aaa; /* color gris claro del aviso sin habilidades */ }
+.stats-grid {
+  display: grid; /* cuadrícula para los stats del pokémon */
+  grid-template-columns: repeat(3, 1fr); /* tres stats por fila, de igual ancho */
+  gap: 4px; /* separación entre cada celda de stat */
+}
+
+.stat-item {
+  display: flex; /* nombre y valor apilados con flex */
+  flex-direction: column; /* nombre arriba, valor abajo */
+  background: #f5f5f5; /* fondo gris muy claro de cada stat */
+  border-radius: 6px; /* esquinas redondeadas de la celda */
+  padding: 5px 7px; /* relleno interno de la celda de stat */
+}
+
+.stat-nombre {
+  font-size: 0.62rem; /* texto muy pequeño del nombre del stat */
+  color: #999; /* color gris claro del nombre del stat */
+  text-transform: uppercase; /* nombre del stat en mayúsculas */
+  font-weight: bold; /* nombre del stat en negrita */
+}
+
+.stat-valor {
+  font-size: 0.88rem; /* tamaño del valor numérico del stat */
+  font-weight: bold; /* valor del stat en negrita */
+  color: #222; /* color oscuro del valor del stat */
+}
+
+.sin-habilidades { font-size: 0.75rem; color: #aaa; }
+
+.stat-valor-fila { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+
+.stat-grado {
+  font-size: 0.62rem;
+  font-weight: bold;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.grado-s { background: #c8970a; }
+.grado-a { background: #2dc653; }
+.grado-b { background: #1a6db5; }
+.grado-c { background: #888; }
+.grado-d { background: #e63946; }
+
+.asc-bloqueada .hab-header { opacity: 0.4; cursor: not-allowed; }
+.asc-bloqueada .hab-header:hover { background: #f9f9f9; }
+
+.asc-icono { font-size: 0.72rem; color: #aaa; flex-shrink: 0; }
+
+.hab-efecto-texto {
+  display: block;
+  margin-top: 3px;
+  font-style: italic;
+  color: #999;
+  font-size: 0.9em;
+}
 
 .advertencia-mensaje {
   font-size: 0.78rem; /* texto pequeño del mensaje de advertencia */
